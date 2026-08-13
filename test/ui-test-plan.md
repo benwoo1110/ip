@@ -130,7 +130,7 @@ bye
 
 ### Aim
 
-Verify that missing task details and unknown instructions produce guidance while leaving the application running for the next command.
+Verify that missing task details and unknown instructions produce specific, themed guidance while leaving the application running for the next command.
 
 ### Command
 
@@ -161,16 +161,16 @@ bye
     What can I do for you before the next lap?
     ____________________________________________________________
     ____________________________________________________________
-    This racer needs a name. Use: todo DESCRIPTION
+    Pit stop! This racer needs a name. Use: todo DESCRIPTION
     ____________________________________________________________
     ____________________________________________________________
-    That deadline missed its checkpoint. Use: deadline DESCRIPTION /by DATE_OR_TIME
+    Pit stop! That deadline is missing its /by checkpoint. Use: deadline DESCRIPTION /by DATE_OR_TIME
     ____________________________________________________________
     ____________________________________________________________
-    This event needs a full race route. Use: event DESCRIPTION /from START /to END
+    Pit stop! That event is missing its /to finish line. Use: event DESCRIPTION /from START /to END
     ____________________________________________________________
     ____________________________________________________________
-    That command took a wrong turn. Try todo, deadline, event, list, mark, or unmark.
+    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, or bye.
     ____________________________________________________________
     ____________________________________________________________
     Race complete! Catch you on the next lap. Ka-chow!
@@ -215,7 +215,7 @@ bye
     What can I do for you before the next lap?
     ____________________________________________________________
     ____________________________________________________________
-    That task number isn't in the race. Check the list and try again.
+    Pit stop! Racer 1 isn't on the grid. Use list to check the task numbers.
     ____________________________________________________________
     ____________________________________________________________
     Ka-chow! A new racer joined the starting grid:
@@ -223,21 +223,159 @@ bye
     Now you've got 1 racer ready to roll.
     ____________________________________________________________
     ____________________________________________________________
-    I need a valid task number to make that pit stop.
+    Pit stop! That racer number isn't a whole positive number. Use: mark TASK_NUMBER
     ____________________________________________________________
     ____________________________________________________________
-    That task number isn't in the race. Check the list and try again.
+    Pit stop! Racer 2 isn't on the grid. Use list to check the task numbers.
     ____________________________________________________________
     ____________________________________________________________
     Ka-chow! This task crossed the finish line:
       [T][X] pit stop
     ____________________________________________________________
     ____________________________________________________________
-    That task number isn't in the race. Check the list and try again.
+    Pit stop! That racer number isn't a whole positive number. Use: unmark TASK_NUMBER
     ____________________________________________________________
     ____________________________________________________________
     Back to the starting grid! This task is not done yet:
       [T][ ] pit stop
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-05 Reject empty commands and unexpected arguments
+
+### Aim
+
+Verify that an empty command and extra arguments for argument-free commands receive specific correction guidance, and that listing an empty task collection remains safe.
+
+### Command
+
+```json
+["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+```
+
+### Inputs
+
+```text
+
+list
+list turbo
+bye now
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That command stalled on the starting line. Enter a command to keep racing.
+    ____________________________________________________________
+    ____________________________________________________________
+    The starting grid is empty. Add a racer with todo, deadline, or event.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! The list command has extra cargo. Use: list
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! The bye command has extra cargo. Use: bye
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-06 Explain every malformed command component
+
+### Aim
+
+Verify that each missing, duplicated, misplaced, or invalid command component receives guidance that identifies the exact correction needed.
+
+### Command
+
+```json
+["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+```
+
+### Inputs
+
+```text
+deadline
+deadline /by Sunday
+deadline service /by
+deadline service /by Friday /by Monday
+event
+event /from Mon /to Tue
+event meeting /to Tue /from Mon
+event meeting /from Mon
+event meeting /from /to Tue
+event meeting /from Mon /to
+event meeting /from Mon /to Tue /to Wed
+mark
+unmark 999999999999999999999
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! This deadline racer needs a task description. Use: deadline DESCRIPTION /by DATE_OR_TIME
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! This deadline racer needs a task description. Use: deadline DESCRIPTION /by DATE_OR_TIME
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That deadline needs a date or time after /by. Use: deadline DESCRIPTION /by DATE_OR_TIME
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That deadline has too many /by checkpoints. Use exactly one: deadline DESCRIPTION /by DATE_OR_TIME
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! This event racer needs a description. Use: event DESCRIPTION /from START /to END
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! This event racer needs a description. Use: event DESCRIPTION /from START /to END
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That event's /from must come before /to. Use: event DESCRIPTION /from START /to END
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That event is missing its /to finish line. Use: event DESCRIPTION /from START /to END
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That event needs a start after /from. Use: event DESCRIPTION /from START /to END
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That event needs an end after /to. Use: event DESCRIPTION /from START /to END
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That event has extra route markers. Use one /from and one /to: event DESCRIPTION /from START /to END
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Tell me which racer to mark. Use: mark TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That racer number isn't a whole positive number. Use: unmark TASK_NUMBER
     ____________________________________________________________
     ____________________________________________________________
     Race complete! Catch you on the next lap. Ka-chow!
