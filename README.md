@@ -27,18 +27,45 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 
    read book
        ____________________________________________________________
-       added: read book
+       Added to the race lineup: read book
        ____________________________________________________________
 
    return book
        ____________________________________________________________
-       added: return book
+       Added to the race lineup: return book
+       ____________________________________________________________
+
+   buy bread
+       ____________________________________________________________
+       Added to the race lineup: buy bread
        ____________________________________________________________
 
    list
        ____________________________________________________________
-       1. read book
-       2. return book
+       Rev up! Here are the tasks in today's race:
+       1.[ ] read book
+       2.[ ] return book
+       3.[ ] buy bread
+       ____________________________________________________________
+
+   mark 2
+       ____________________________________________________________
+       Ka-chow! This task crossed the finish line:
+         [X] return book
+       ____________________________________________________________
+
+   list
+       ____________________________________________________________
+       Rev up! Here are the tasks in today's race:
+       1.[ ] read book
+       2.[X] return book
+       3.[ ] buy bread
+       ____________________________________________________________
+
+   unmark 2
+       ____________________________________________________________
+       Back to the starting grid! This task is not done yet:
+         [ ] return book
        ____________________________________________________________
 
    bye
@@ -49,6 +76,7 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 
 All output produced by Kachow is indented by four spaces to distinguish it from
 the user's input. Tasks are kept in memory for the duration of the program and
-can be displayed by entering `list`.
+can be displayed by entering `list`. Use `mark NUMBER` or `unmark NUMBER` to
+change a task's completion status; task numbers start at 1 as shown by `list`.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
