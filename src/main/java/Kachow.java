@@ -251,6 +251,23 @@ public class Kachow {
                             + ". Use: " + action.getKeyword() + " TASK_NUMBER");
         }
 
+        int taskNumber = getTaskNumber(argument, action);
+        if (taskNumber > tasks.size()) {
+            throw new KachowException(
+                    "Racer " + taskNumber + " isn't on the grid. Use list to check the task numbers.");
+        }
+        return tasks.get(taskNumber - 1);
+    }
+
+    /**
+     * Parses and validates a user-facing, 1-based task number.
+     *
+     * @param argument text containing the task number
+     * @param action command being performed, used to make guidance specific
+     * @return the positive task number
+     * @throws KachowException if the task number is not a whole positive number
+     */
+    private static int getTaskNumber(String argument, Command action) throws KachowException {
         int taskNumber;
         try {
             taskNumber = Integer.parseInt(argument);
@@ -265,11 +282,7 @@ public class Kachow {
                     "That racer number isn't a whole positive number. Use: "
                             + action.getKeyword() + " TASK_NUMBER");
         }
-        if (taskNumber > tasks.size()) {
-            throw new KachowException(
-                    "Racer " + taskNumber + " isn't on the grid. Use list to check the task numbers.");
-        }
-        return tasks.get(taskNumber - 1);
+        return taskNumber;
     }
 
     /**
