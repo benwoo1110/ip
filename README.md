@@ -24,6 +24,14 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    Ka-chow! I'm Kachow, the fastest chatbot on the track.
    What can I do for you before the next lap?
    ____________________________________________________________
+
+   list
+   ____________________________________________________________
+   list
+   ____________________________________________________________
+
+   bye
+   ____________________________________________________________
    Race complete! Catch you on the next lap. Ka-chow!
    ____________________________________________________________
    ```

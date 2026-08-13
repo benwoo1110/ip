@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 /**
  * Starts the Kachow chatbot application.
  */
@@ -16,7 +18,18 @@ public class Kachow {
         System.out.println("Ka-chow! I'm Kachow, the fastest chatbot on the track.");
         System.out.println("What can I do for you before the next lap?");
         System.out.println(DIVIDER);
-        System.out.println("Race complete! Catch you on the next lap. Ka-chow!");
-        System.out.println(DIVIDER);
+
+        Scanner scanner = new Scanner(System.in);
+        while (scanner.hasNextLine()) {
+            String command = scanner.nextLine();
+            System.out.println(DIVIDER);
+            if (command.equals("bye")) {
+                System.out.println("Race complete! Catch you on the next lap. Ka-chow!");
+                System.out.println(DIVIDER);
+                break;
+            }
+            System.out.println(command);
+            System.out.println(DIVIDER);
+        }
     }
 }
