@@ -39,25 +39,29 @@ public class Kachow {
             String argument = separatorIndex == -1 ? "" : command.substring(separatorIndex).strip();
 
             System.out.println(INDENT + DIVIDER);
-            switch (instruction) {
-            case "bye" -> {
-                if (!argument.isEmpty()) {
-                    printError("The bye command has extra cargo. Use: bye");
-                    break;
+            try {
+                switch (instruction) {
+                case "bye" -> {
+                    if (!argument.isEmpty()) {
+                        throw new KachowException("The bye command has extra cargo. Use: bye");
+                    }
+                    System.out.println(INDENT + "Race complete! Catch you on the next lap. Ka-chow!");
+                    System.out.println(INDENT + DIVIDER);
+                    break commandLoop;
                 }
-                System.out.println(INDENT + "Race complete! Catch you on the next lap. Ka-chow!");
-                System.out.println(INDENT + DIVIDER);
-                break commandLoop;
-            }
-            case "list" -> handleListCommand(tasks, argument);
-            case "mark" -> handleMarkCommand(tasks, argument);
-            case "unmark" -> handleUnmarkCommand(tasks, argument);
-            case "todo" -> addTodo(tasks, argument);
-            case "deadline" -> addDeadline(tasks, argument);
-            case "event" -> addEvent(tasks, argument);
-            case "" -> printError("That command stalled on the starting line. Enter a command to keep racing.");
-            default -> printError(
-                    "That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, or bye.");
+                case "list" -> handleListCommand(tasks, argument);
+                case "mark" -> handleMarkCommand(tasks, argument);
+                case "unmark" -> handleUnmarkCommand(tasks, argument);
+                case "todo" -> addTodo(tasks, argument);
+                case "deadline" -> addDeadline(tasks, argument);
+                case "event" -> addEvent(tasks, argument);
+                case "" -> throw new KachowException(
+                        "That command stalled on the starting line. Enter a command to keep racing.");
+                default -> throw new KachowException(
+                        "That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, or bye.");
+                }
+            } catch (KachowException exception) {
+                printError(exception.getMessage());
             }
             System.out.println(INDENT + DIVIDER);
         }
@@ -83,11 +87,11 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument text following the list command
+     * @throws KachowException if an unexpected argument is present
      */
-    private static void handleListCommand(List<Task> tasks, String argument) {
+    private static void handleListCommand(List<Task> tasks, String argument) throws KachowException {
         if (!argument.isEmpty()) {
-            printError("The list command has extra cargo. Use: list");
-            return;
+            throw new KachowException("The list command has extra cargo. Use: list");
         }
         if (tasks.isEmpty()) {
             System.out.println(INDENT + "The starting grid is empty. Add a racer with todo, deadline, or event.");
@@ -104,11 +108,11 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param description text describing the todo
+     * @throws KachowException if the description is empty
      */
-    private static void addTodo(List<Task> tasks, String description) {
+    private static void addTodo(List<Task> tasks, String description) throws KachowException {
         if (description.isBlank()) {
-            printError("This racer needs a name. Use: todo DESCRIPTION");
-            return;
+            throw new KachowException("This racer needs a name. Use: todo DESCRIPTION");
         }
         addTask(tasks, new Todo(description));
     }
@@ -118,31 +122,31 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument deadline description and due date or time
+     * @throws KachowException if a required deadline component is invalid or missing
      */
-    private static void addDeadline(List<Task> tasks, String argument) {
+    private static void addDeadline(List<Task> tasks, String argument) throws KachowException {
         int byIndex = findToken(argument, "/by", 0);
         if (argument.isEmpty() || byIndex == 0) {
-            printError("This deadline racer needs a task description. Use: " + DEADLINE_USAGE);
-            return;
+            throw new KachowException(
+                    "This deadline racer needs a task description. Use: " + DEADLINE_USAGE);
         }
         if (byIndex == -1) {
-            printError("That deadline is missing its /by checkpoint. Use: " + DEADLINE_USAGE);
-            return;
+            throw new KachowException("That deadline is missing its /by checkpoint. Use: " + DEADLINE_USAGE);
         }
         if (findToken(argument, "/by", byIndex + 3) != -1) {
-            printError("That deadline has too many /by checkpoints. Use exactly one: " + DEADLINE_USAGE);
-            return;
+            throw new KachowException(
+                    "That deadline has too many /by checkpoints. Use exactly one: " + DEADLINE_USAGE);
         }
 
         String description = argument.substring(0, byIndex).strip();
         String by = argument.substring(byIndex + 3).strip();
         if (description.isEmpty()) {
-            printError("This deadline racer needs a task description. Use: " + DEADLINE_USAGE);
-            return;
+            throw new KachowException(
+                    "This deadline racer needs a task description. Use: " + DEADLINE_USAGE);
         }
         if (by.isEmpty()) {
-            printError("That deadline needs a date or time after /by. Use: " + DEADLINE_USAGE);
-            return;
+            throw new KachowException(
+                    "That deadline needs a date or time after /by. Use: " + DEADLINE_USAGE);
         }
         addTask(tasks, new Deadline(description, by));
     }
@@ -153,48 +157,42 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument event description, start, and end
+     * @throws KachowException if a required event component is invalid or missing
      */
-    private static void addEvent(List<Task> tasks, String argument) {
+    private static void addEvent(List<Task> tasks, String argument) throws KachowException {
         int fromIndex = findToken(argument, "/from", 0);
         int firstToIndex = findToken(argument, "/to", 0);
         if (argument.isEmpty() || fromIndex == 0) {
-            printError("This event racer needs a description. Use: " + EVENT_USAGE);
-            return;
+            throw new KachowException("This event racer needs a description. Use: " + EVENT_USAGE);
         }
         if (fromIndex == -1) {
-            printError("That event is missing its /from starting line. Use: " + EVENT_USAGE);
-            return;
+            throw new KachowException("That event is missing its /from starting line. Use: " + EVENT_USAGE);
         }
         if (firstToIndex != -1 && firstToIndex < fromIndex) {
-            printError("That event's /from must come before /to. Use: " + EVENT_USAGE);
-            return;
+            throw new KachowException("That event's /from must come before /to. Use: " + EVENT_USAGE);
         }
 
         int toIndex = findToken(argument, "/to", fromIndex + 5);
         if (toIndex == -1) {
-            printError("That event is missing its /to finish line. Use: " + EVENT_USAGE);
-            return;
+            throw new KachowException("That event is missing its /to finish line. Use: " + EVENT_USAGE);
         }
         if (findToken(argument, "/from", fromIndex + 5) != -1
                 || findToken(argument, "/to", toIndex + 3) != -1) {
-            printError("That event has extra route markers. Use one /from and one /to: " + EVENT_USAGE);
-            return;
+            throw new KachowException(
+                    "That event has extra route markers. Use one /from and one /to: " + EVENT_USAGE);
         }
 
         String description = argument.substring(0, fromIndex).strip();
         String from = argument.substring(fromIndex + 5, toIndex).strip();
         String to = argument.substring(toIndex + 3).strip();
         if (description.isEmpty()) {
-            printError("This event racer needs a description. Use: " + EVENT_USAGE);
-            return;
+            throw new KachowException("This event racer needs a description. Use: " + EVENT_USAGE);
         }
         if (from.isEmpty()) {
-            printError("That event needs a start after /from. Use: " + EVENT_USAGE);
-            return;
+            throw new KachowException("That event needs a start after /from. Use: " + EVENT_USAGE);
         }
         if (to.isEmpty()) {
-            printError("That event needs an end after /to. Use: " + EVENT_USAGE);
-            return;
+            throw new KachowException("That event needs an end after /to. Use: " + EVENT_USAGE);
         }
         addTask(tasks, new Event(description, from, to));
     }
@@ -237,51 +235,36 @@ public class Kachow {
 
     /**
      * Gets the task identified by a user-facing, 1-based task number.
-     * The number is parsed manually because Part 1 intentionally avoids exceptions.
      *
      * @param tasks tasks currently stored in memory
      * @param argument text containing the task number
      * @param action command being performed, used to make guidance specific
-     * @return the selected task, or {@code null} if the number is invalid
+     * @return the selected task
+     * @throws KachowException if the task number is missing, malformed, or outside the task list
      */
-    private static Task getTask(List<Task> tasks, String argument, String action) {
+    private static Task getTask(List<Task> tasks, String argument, String action) throws KachowException {
         if (argument.isEmpty()) {
-            printError("Tell me which racer to " + action + ". Use: " + action + " TASK_NUMBER");
-            return null;
+            throw new KachowException(
+                    "Tell me which racer to " + action + ". Use: " + action + " TASK_NUMBER");
         }
 
-        int taskNumber = parsePositiveInt(argument);
-        if (taskNumber == -1) {
-            printError("That racer number isn't a whole positive number. Use: " + action + " TASK_NUMBER");
-            return null;
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(argument);
+        } catch (NumberFormatException exception) {
+            throw new KachowException(
+                    "That racer number isn't a whole positive number. Use: " + action + " TASK_NUMBER",
+                    exception);
+        }
+        if (taskNumber <= 0) {
+            throw new KachowException(
+                    "That racer number isn't a whole positive number. Use: " + action + " TASK_NUMBER");
         }
         if (taskNumber > tasks.size()) {
-            printError("Racer " + taskNumber + " isn't on the grid. Use list to check the task numbers.");
-            return null;
+            throw new KachowException(
+                    "Racer " + taskNumber + " isn't on the grid. Use list to check the task numbers.");
         }
         return tasks.get(taskNumber - 1);
-    }
-
-    /**
-     * Parses a positive decimal integer without relying on an exception for invalid input.
-     *
-     * @param text candidate integer text
-     * @return the positive value, or {@code -1} if the text is invalid or exceeds the integer range
-     */
-    private static int parsePositiveInt(String text) {
-        int value = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char character = text.charAt(i);
-            if (!Character.isDigit(character)) {
-                return -1;
-            }
-            int digit = character - '0';
-            if (value > (Integer.MAX_VALUE - digit) / 10) {
-                return -1;
-            }
-            value = value * 10 + digit;
-        }
-        return value > 0 ? value : -1;
     }
 
     /**
@@ -289,12 +272,10 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument text containing the task number
+     * @throws KachowException if the task number does not identify a task
      */
-    private static void handleMarkCommand(List<Task> tasks, String argument) {
+    private static void handleMarkCommand(List<Task> tasks, String argument) throws KachowException {
         Task task = getTask(tasks, argument, "mark");
-        if (task == null) {
-            return;
-        }
         task.markAsDone();
         printMarkedTask(task);
     }
@@ -304,12 +285,10 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument text containing the task number
+     * @throws KachowException if the task number does not identify a task
      */
-    private static void handleUnmarkCommand(List<Task> tasks, String argument) {
+    private static void handleUnmarkCommand(List<Task> tasks, String argument) throws KachowException {
         Task task = getTask(tasks, argument, "unmark");
-        if (task == null) {
-            return;
-        }
         task.markAsNotDone();
         printUnmarkedTask(task);
     }
