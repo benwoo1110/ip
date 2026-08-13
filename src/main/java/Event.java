@@ -1,9 +1,7 @@
 /**
  * Represents a task that takes place between specified start and end times.
  */
-public class Event {
-    private final String description;
-    private boolean isDone;
+public class Event extends Task {
     private final String from;
     private final String to;
 
@@ -15,33 +13,13 @@ public class Event {
      * @param to date or time at which the event ends
      */
     public Event(String description, String from, String to) {
-        this.description = description;
-        this.isDone = false;
+        super(description);
         this.from = from;
         this.to = to;
     }
 
-    /**
-     * Marks this task as complete.
-     */
-    public void markAsDone() {
-        isDone = true;
-    }
-
-    /**
-     * Marks this task as incomplete.
-     */
-    public void markAsNotDone() {
-        isDone = false;
-    }
-
-    /**
-     * Returns this event's type, completion status, description, and schedule.
-     *
-     * @return formatted event status
-     */
+    @Override
     public String getStatusText() {
-        String statusIcon = isDone ? "[X] " : "[ ] ";
-        return "[E]" + statusIcon + description + " (from: " + from + " to: " + to + ")";
+        return "[E]" + super.getStatusText() + " (from: " + from + " to: " + to + ")";
     }
 }
