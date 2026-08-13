@@ -27,8 +27,7 @@ public class Kachow {
         System.out.println(INDENT + "What can I do for you before the next lap?");
         System.out.println(INDENT + DIVIDER);
 
-        List<String> tasks = new ArrayList<>();
-        List<Boolean> taskStatuses = new ArrayList<>();
+        List<Task> tasks = new ArrayList<>();
         Scanner scanner = new Scanner(System.in);
         commandLoop:
         while (scanner.hasNextLine()) {
@@ -47,15 +46,13 @@ public class Kachow {
             case "list" -> {
                 System.out.println(INDENT + "Rev up! Here are the tasks in today's race:");
                 for (int i = 0; i < tasks.size(); i++) {
-                    String statusIcon = taskStatuses.get(i) ? "[X] " : "[ ] ";
-                    System.out.println(INDENT + (i + 1) + "." + statusIcon + tasks.get(i));
+                    System.out.println(INDENT + (i + 1) + "." + tasks.get(i).getStatusText());
                 }
             }
-            case "mark" -> handleMarkCommand(tasks, taskStatuses, argument);
-            case "unmark" -> handleUnmarkCommand(tasks, taskStatuses, argument);
+            case "mark" -> handleMarkCommand(tasks, argument);
+            case "unmark" -> handleUnmarkCommand(tasks, argument);
             default -> {
-                tasks.add(command);
-                taskStatuses.add(false);
+                tasks.add(new Task(command));
                 System.out.println(INDENT + "Added to the race lineup: " + command);
             }
             }
@@ -69,74 +66,72 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument text containing the task number
-     * @return the zero-based index of the selected task, or {@code -1} if the number is invalid
+     * @return the selected task, or {@code null} if the number is invalid
      */
-    private static int getTaskIndex(List<String> tasks, String argument) {
+    private static Task getTask(List<Task> tasks, String argument) {
         int taskNumber;
         try {
             taskNumber = Integer.parseInt(argument);
         } catch (NumberFormatException exception) {
             System.out.println(INDENT + "I need a valid task number to make that pit stop.");
-            return -1;
+            return null;
         }
 
         int taskIndex = taskNumber - 1;
         if (taskIndex < 0 || taskIndex >= tasks.size()) {
             System.out.println(INDENT + "That task number isn't in the race. Check the list and try again.");
-            return -1;
+            return null;
         }
-        return taskIndex;
+        return tasks.get(taskIndex);
     }
 
     /**
      * Marks the selected task as done and displays confirmation.
      *
      * @param tasks tasks currently stored in memory
-     * @param taskStatuses completion status corresponding to each task
      * @param argument text containing the task number
      */
-    private static void handleMarkCommand(List<String> tasks, List<Boolean> taskStatuses, String argument) {
-        int taskIndex = getTaskIndex(tasks, argument);
-        if (taskIndex == -1) {
+    private static void handleMarkCommand(List<Task> tasks, String argument) {
+        Task task = getTask(tasks, argument);
+        if (task == null) {
             return;
         }
-        taskStatuses.set(taskIndex, true);
-        printMarkedTask(tasks.get(taskIndex));
+        task.markAsDone();
+        printMarkedTask(task);
     }
 
     /**
      * Marks the selected task as not done and displays confirmation.
      *
      * @param tasks tasks currently stored in memory
-     * @param taskStatuses completion status corresponding to each task
      * @param argument text containing the task number
      */
-    private static void handleUnmarkCommand(List<String> tasks, List<Boolean> taskStatuses, String argument) {
-        int taskIndex = getTaskIndex(tasks, argument);
-        if (taskIndex == -1) {
+    private static void handleUnmarkCommand(List<Task> tasks, String argument) {
+        Task task = getTask(tasks, argument);
+        if (task == null) {
             return;
         }
-        taskStatuses.set(taskIndex, false);
-        printUnmarkedTask(tasks.get(taskIndex));
+        task.markAsNotDone();
+        printUnmarkedTask(task);
     }
 
     /**
      * Displays confirmation that a task was marked as done.
      *
-     * @param taskDescription description of the task that was marked
+     * @param task task that was marked
      */
-    private static void printMarkedTask(String taskDescription) {
+    private static void printMarkedTask(Task task) {
         System.out.println(INDENT + "Ka-chow! This task crossed the finish line:");
-        System.out.println(INDENT + "  [X] " + taskDescription);
+        System.out.println(INDENT + "  " + task.getStatusText());
     }
 
     /**
      * Displays confirmation that a task was marked as not done.
      *
-     * @param taskDescription description of the task that was unmarked
+     * @param task task that was unmarked
      */
-    private static void printUnmarkedTask(String taskDescription) {
+    private static void printUnmarkedTask(Task task) {
         System.out.println(INDENT + "Back to the starting grid! This task is not done yet:");
-        System.out.println(INDENT + "  [ ] " + taskDescription);
+        System.out.println(INDENT + "  " + task.getStatusText());
     }
 }
