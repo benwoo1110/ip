@@ -33,15 +33,20 @@ public class Kachow {
         Scanner scanner = new Scanner(System.in);
         commandLoop:
         while (scanner.hasNextLine()) {
-            String command = scanner.nextLine().strip();
-            int separatorIndex = firstWhitespaceIndex(command);
-            String instruction = separatorIndex == -1 ? command : command.substring(0, separatorIndex);
-            String argument = separatorIndex == -1 ? "" : command.substring(separatorIndex).strip();
+            String commandText = scanner.nextLine().strip();
+            int separatorIndex = firstWhitespaceIndex(commandText);
+            String instruction = separatorIndex == -1 ? commandText : commandText.substring(0, separatorIndex);
+            String argument = separatorIndex == -1 ? "" : commandText.substring(separatorIndex).strip();
 
             System.out.println(INDENT + DIVIDER);
             try {
-                switch (instruction) {
-                case "bye" -> {
+                if (instruction.isEmpty()) {
+                    throw new KachowException(
+                            "That command stalled on the starting line. Enter a command to keep racing.");
+                }
+                Command command = Command.fromKeyword(instruction);
+                switch (command) {
+                case BYE -> {
                     if (!argument.isEmpty()) {
                         throw new KachowException("The bye command has extra cargo. Use: bye");
                     }
@@ -49,17 +54,13 @@ public class Kachow {
                     System.out.println(INDENT + DIVIDER);
                     break commandLoop;
                 }
-                case "list" -> handleListCommand(tasks, argument);
-                case "mark" -> handleMarkCommand(tasks, argument);
-                case "unmark" -> handleUnmarkCommand(tasks, argument);
-                case "delete" -> handleDeleteCommand(tasks, argument);
-                case "todo" -> addTodo(tasks, argument);
-                case "deadline" -> addDeadline(tasks, argument);
-                case "event" -> addEvent(tasks, argument);
-                case "" -> throw new KachowException(
-                        "That command stalled on the starting line. Enter a command to keep racing.");
-                default -> throw new KachowException(
-                        "That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, delete, or bye.");
+                case LIST -> handleListCommand(tasks, argument);
+                case MARK -> handleMarkCommand(tasks, argument);
+                case UNMARK -> handleUnmarkCommand(tasks, argument);
+                case DELETE -> handleDeleteCommand(tasks, argument);
+                case TODO -> addTodo(tasks, argument);
+                case DEADLINE -> addDeadline(tasks, argument);
+                case EVENT -> addEvent(tasks, argument);
                 }
             } catch (KachowException exception) {
                 printError(exception.getMessage());
@@ -243,10 +244,11 @@ public class Kachow {
      * @return the selected task
      * @throws KachowException if the task number is missing, malformed, or outside the task list
      */
-    private static Task getTask(List<Task> tasks, String argument, String action) throws KachowException {
+    private static Task getTask(List<Task> tasks, String argument, Command action) throws KachowException {
         if (argument.isEmpty()) {
             throw new KachowException(
-                    "Tell me which racer to " + action + ". Use: " + action + " TASK_NUMBER");
+                    "Tell me which racer to " + action.getKeyword()
+                            + ". Use: " + action.getKeyword() + " TASK_NUMBER");
         }
 
         int taskNumber;
@@ -254,12 +256,14 @@ public class Kachow {
             taskNumber = Integer.parseInt(argument);
         } catch (NumberFormatException exception) {
             throw new KachowException(
-                    "That racer number isn't a whole positive number. Use: " + action + " TASK_NUMBER",
+                    "That racer number isn't a whole positive number. Use: "
+                            + action.getKeyword() + " TASK_NUMBER",
                     exception);
         }
         if (taskNumber <= 0) {
             throw new KachowException(
-                    "That racer number isn't a whole positive number. Use: " + action + " TASK_NUMBER");
+                    "That racer number isn't a whole positive number. Use: "
+                            + action.getKeyword() + " TASK_NUMBER");
         }
         if (taskNumber > tasks.size()) {
             throw new KachowException(
@@ -276,7 +280,7 @@ public class Kachow {
      * @throws KachowException if the task number does not identify a task
      */
     private static void handleMarkCommand(List<Task> tasks, String argument) throws KachowException {
-        Task task = getTask(tasks, argument, "mark");
+        Task task = getTask(tasks, argument, Command.MARK);
         task.markAsDone();
         printMarkedTask(task);
     }
@@ -289,7 +293,7 @@ public class Kachow {
      * @throws KachowException if the task number does not identify a task
      */
     private static void handleUnmarkCommand(List<Task> tasks, String argument) throws KachowException {
-        Task task = getTask(tasks, argument, "unmark");
+        Task task = getTask(tasks, argument, Command.UNMARK);
         task.markAsNotDone();
         printUnmarkedTask(task);
     }
@@ -302,7 +306,7 @@ public class Kachow {
      * @throws KachowException if the task number does not identify a task
      */
     private static void handleDeleteCommand(List<Task> tasks, String argument) throws KachowException {
-        Task task = getTask(tasks, argument, "delete");
+        Task task = getTask(tasks, argument, Command.DELETE);
         tasks.remove(task);
         System.out.println(INDENT + "Ka-chow! This racer has left the track:");
         System.out.println(INDENT + "  " + task.getStatusText());

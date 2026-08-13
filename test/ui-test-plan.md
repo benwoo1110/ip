@@ -3,7 +3,7 @@
 ## Test setup
 
 - Runtime: Java 25.
-- Compile before testing with `javac -d _temp/ui-test-classes src/main/java/Deadline.java src/main/java/Event.java src/main/java/Kachow.java src/main/java/KachowException.java src/main/java/Task.java src/main/java/Todo.java`.
+- Compile before testing with `javac -d _temp/ui-test-classes src/main/java/Command.java src/main/java/Deadline.java src/main/java/Event.java src/main/java/Kachow.java src/main/java/KachowException.java src/main/java/Task.java src/main/java/Todo.java`.
 - Run every case from the repository root in a fresh JVM. Kachow stores tasks only in memory, so cases do not share state.
 - Compare combined console output exactly after normalizing CRLF line endings to LF.
 
