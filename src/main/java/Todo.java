@@ -1,16 +1,16 @@
 /**
- * Represents a task with a description and completion status.
+ * Represents a task without an attached date or time.
  */
-public class Task {
+public class Todo {
     private final String description;
     private boolean isDone;
 
     /**
-     * Creates an incomplete task with the given description.
+     * Creates an incomplete todo task.
      *
      * @param description text describing the task
      */
-    public Task(String description) {
+    public Todo(String description) {
         this.description = description;
         this.isDone = false;
     }
@@ -30,11 +30,11 @@ public class Task {
     }
 
     /**
-     * Returns the task description prefixed with its completion icon.
+     * Returns this todo's type, completion status, and description.
      *
-     * @return formatted status and description
+     * @return formatted todo status
      */
     public String getStatusText() {
-        return (isDone ? "[X] " : "[ ] ") + description;
+        return "[T]" + (isDone ? "[X] " : "[ ] ") + description;
     }
 }

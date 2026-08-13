@@ -25,47 +25,53 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
        What can I do for you before the next lap?
        ____________________________________________________________
 
-   read book
+   todo read book
        ____________________________________________________________
-       Added to the race lineup: read book
-       ____________________________________________________________
-
-   return book
-       ____________________________________________________________
-       Added to the race lineup: return book
+       Ka-chow! A new racer joined the starting grid:
+         [T][ ] read book
+       Now you've got 1 racer ready to roll.
        ____________________________________________________________
 
-   buy bread
+   deadline return book /by Sunday
        ____________________________________________________________
-       Added to the race lineup: buy bread
+       Ka-chow! A new racer joined the starting grid:
+         [D][ ] return book (by: Sunday)
+       Now you've got 2 racers ready to roll.
+       ____________________________________________________________
+
+   event project meeting /from Mon 2pm /to 4pm
+       ____________________________________________________________
+       Ka-chow! A new racer joined the starting grid:
+         [E][ ] project meeting (from: Mon 2pm to: 4pm)
+       Now you've got 3 racers ready to roll.
        ____________________________________________________________
 
    list
        ____________________________________________________________
        Rev up! Here are the tasks in today's race:
-       1.[ ] read book
-       2.[ ] return book
-       3.[ ] buy bread
+       1.[T][ ] read book
+       2.[D][ ] return book (by: Sunday)
+       3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
        ____________________________________________________________
 
    mark 2
        ____________________________________________________________
        Ka-chow! This task crossed the finish line:
-         [X] return book
+         [D][X] return book (by: Sunday)
        ____________________________________________________________
 
    list
        ____________________________________________________________
        Rev up! Here are the tasks in today's race:
-       1.[ ] read book
-       2.[X] return book
-       3.[ ] buy bread
+       1.[T][ ] read book
+       2.[D][X] return book (by: Sunday)
+       3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
        ____________________________________________________________
 
    unmark 2
        ____________________________________________________________
        Back to the starting grid! This task is not done yet:
-         [ ] return book
+         [D][ ] return book (by: Sunday)
        ____________________________________________________________
 
    bye
@@ -75,8 +81,10 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
    ```
 
 All output produced by Kachow is indented by four spaces to distinguish it from
-the user's input. Tasks are kept in memory for the duration of the program and
-can be displayed by entering `list`. Use `mark NUMBER` or `unmark NUMBER` to
-change a task's completion status; task numbers start at 1 as shown by `list`.
+the user's input. Add tasks with `todo DESCRIPTION`, `deadline DESCRIPTION /by
+DATE_OR_TIME`, or `event DESCRIPTION /from START /to END`. Tasks are kept in
+memory for the duration of the program and can be displayed by entering `list`.
+Use `mark NUMBER` or `unmark NUMBER` to change a task's completion status; task
+numbers start at 1 as shown by `list`.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
