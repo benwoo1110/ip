@@ -52,13 +52,14 @@ public class Kachow {
                 case "list" -> handleListCommand(tasks, argument);
                 case "mark" -> handleMarkCommand(tasks, argument);
                 case "unmark" -> handleUnmarkCommand(tasks, argument);
+                case "delete" -> handleDeleteCommand(tasks, argument);
                 case "todo" -> addTodo(tasks, argument);
                 case "deadline" -> addDeadline(tasks, argument);
                 case "event" -> addEvent(tasks, argument);
                 case "" -> throw new KachowException(
                         "That command stalled on the starting line. Enter a command to keep racing.");
                 default -> throw new KachowException(
-                        "That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, or bye.");
+                        "That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, delete, or bye.");
                 }
             } catch (KachowException exception) {
                 printError(exception.getMessage());
@@ -291,6 +292,22 @@ public class Kachow {
         Task task = getTask(tasks, argument, "unmark");
         task.markAsNotDone();
         printUnmarkedTask(task);
+    }
+
+    /**
+     * Removes the selected task and displays the number of racers still on the grid.
+     *
+     * @param tasks tasks currently stored in memory
+     * @param argument text containing the task number
+     * @throws KachowException if the task number does not identify a task
+     */
+    private static void handleDeleteCommand(List<Task> tasks, String argument) throws KachowException {
+        Task task = getTask(tasks, argument, "delete");
+        tasks.remove(task);
+        System.out.println(INDENT + "Ka-chow! This racer has left the track:");
+        System.out.println(INDENT + "  " + task.getStatusText());
+        String racerLabel = tasks.size() == 1 ? " racer" : " racers";
+        System.out.println(INDENT + "Now you've got " + tasks.size() + racerLabel + " still in the race.");
     }
 
     /**

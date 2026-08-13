@@ -170,7 +170,110 @@ bye
     Pit stop! That event is missing its /to finish line. Use: event DESCRIPTION /from START /to END
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, or bye.
+    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, delete, or bye.
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-07 Delete a task and renumber the list
+
+### Aim
+
+Verify that deleting a task shows the removed task and updated task count, and that the remaining tasks are renumbered without otherwise changing their details or completion statuses.
+
+### Command
+
+```json
+["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+```
+
+### Inputs
+
+```text
+todo read book
+deadline return book /by June 6th
+event project meeting /from Aug 6th 2pm /to 4pm
+todo join sports club
+todo borrow book
+mark 1
+mark 2
+mark 4
+list
+delete 3
+list
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] read book
+    Now you've got 1 racer ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [D][ ] return book (by: June 6th)
+    Now you've got 2 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [E][ ] project meeting (from: Aug 6th 2pm to: 4pm)
+    Now you've got 3 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] join sports club
+    Now you've got 4 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] borrow book
+    Now you've got 5 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This task crossed the finish line:
+      [T][X] read book
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This task crossed the finish line:
+      [D][X] return book (by: June 6th)
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This task crossed the finish line:
+      [T][X] join sports club
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[T][X] read book
+    2.[D][X] return book (by: June 6th)
+    3.[E][ ] project meeting (from: Aug 6th 2pm to: 4pm)
+    4.[T][X] join sports club
+    5.[T][ ] borrow book
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer has left the track:
+      [E][ ] project meeting (from: Aug 6th 2pm to: 4pm)
+    Now you've got 4 racers still in the race.
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[T][X] read book
+    2.[D][X] return book (by: June 6th)
+    3.[T][X] join sports club
+    4.[T][ ] borrow book
     ____________________________________________________________
     ____________________________________________________________
     Race complete! Catch you on the next lap. Ka-chow!
@@ -376,6 +479,235 @@ bye
     ____________________________________________________________
     ____________________________________________________________
     Pit stop! That racer number isn't a whole positive number. Use: unmark TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-08 Preserve state after invalid delete commands
+
+### Aim
+
+Verify that missing, nonnumeric, nonpositive, extra, and out-of-range delete arguments are rejected without changing task data or completion state, while valid commands still work between the rejected commands.
+
+### Command
+
+```json
+["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+```
+
+### Inputs
+
+```text
+delete 1
+todo tire change
+delete
+list
+delete zero
+mark 1
+delete -1
+list
+delete 1 turbo
+unmark 1
+delete 2
+list
+delete 1
+list
+delete 1
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Racer 1 isn't on the grid. Use list to check the task numbers.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] tire change
+    Now you've got 1 racer ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Tell me which racer to delete. Use: delete TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[T][ ] tire change
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That racer number isn't a whole positive number. Use: delete TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This task crossed the finish line:
+      [T][X] tire change
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That racer number isn't a whole positive number. Use: delete TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[T][X] tire change
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That racer number isn't a whole positive number. Use: delete TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Back to the starting grid! This task is not done yet:
+      [T][ ] tire change
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Racer 2 isn't on the grid. Use list to check the task numbers.
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[T][ ] tire change
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer has left the track:
+      [T][ ] tire change
+    Now you've got 0 racers still in the race.
+    ____________________________________________________________
+    ____________________________________________________________
+    The starting grid is empty. Add a racer with todo, deadline, or event.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Racer 1 isn't on the grid. Use list to check the task numbers.
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-09 Delete boundary tasks and continue using the list
+
+### Aim
+
+Verify that deleting the first, last, and only tasks preserves task details and completion state through renumbering, invalid deletion does not mutate the list, and new tasks can be added after the list becomes empty.
+
+### Command
+
+```json
+["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+```
+
+### Inputs
+
+```text
+todo pole position
+deadline refuel /by lap 20
+event sponsor event /from 3pm /to 4pm
+todo victory lap
+mark 2
+delete 1
+delete 4
+list
+unmark 1
+delete 3
+list
+delete 1
+delete 1
+list
+todo new race
+list
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] pole position
+    Now you've got 1 racer ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [D][ ] refuel (by: lap 20)
+    Now you've got 2 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [E][ ] sponsor event (from: 3pm to: 4pm)
+    Now you've got 3 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] victory lap
+    Now you've got 4 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This task crossed the finish line:
+      [D][X] refuel (by: lap 20)
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer has left the track:
+      [T][ ] pole position
+    Now you've got 3 racers still in the race.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Racer 4 isn't on the grid. Use list to check the task numbers.
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[D][X] refuel (by: lap 20)
+    2.[E][ ] sponsor event (from: 3pm to: 4pm)
+    3.[T][ ] victory lap
+    ____________________________________________________________
+    ____________________________________________________________
+    Back to the starting grid! This task is not done yet:
+      [D][ ] refuel (by: lap 20)
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer has left the track:
+      [T][ ] victory lap
+    Now you've got 2 racers still in the race.
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[D][ ] refuel (by: lap 20)
+    2.[E][ ] sponsor event (from: 3pm to: 4pm)
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer has left the track:
+      [D][ ] refuel (by: lap 20)
+    Now you've got 1 racer still in the race.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer has left the track:
+      [E][ ] sponsor event (from: 3pm to: 4pm)
+    Now you've got 0 racers still in the race.
+    ____________________________________________________________
+    ____________________________________________________________
+    The starting grid is empty. Add a racer with todo, deadline, or event.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] new race
+    Now you've got 1 racer ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[T][ ] new race
     ____________________________________________________________
     ____________________________________________________________
     Race complete! Catch you on the next lap. Ka-chow!

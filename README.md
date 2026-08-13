@@ -85,6 +85,7 @@ the user's input. Add tasks with `todo DESCRIPTION`, `deadline DESCRIPTION /by
 DATE_OR_TIME`, or `event DESCRIPTION /from START /to END`. Tasks are kept in
 memory for the duration of the program and can be displayed by entering `list`.
 Use `mark NUMBER` or `unmark NUMBER` to change a task's completion status; task
-numbers start at 1 as shown by `list`.
+numbers start at 1 as shown by `list`. Use `delete NUMBER` to remove a task from
+the race; the remaining tasks are renumbered automatically.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
