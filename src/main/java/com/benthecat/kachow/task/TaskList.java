@@ -3,6 +3,7 @@ package com.benthecat.kachow.task;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.benthecat.kachow.exception.KachowException;
 
@@ -60,6 +61,26 @@ public class TaskList {
         for (int i = 0; i < tasks.size(); i++) {
             Task task = tasks.get(i);
             if (task.occursOn(date)) {
+                matchingTasks.add(new NumberedTask(i + 1, task));
+            }
+        }
+        return matchingTasks;
+    }
+
+    /**
+     * Finds tasks whose descriptions contain a keyword, ignoring letter case.
+     * The results retain their original task numbers.
+     *
+     * @param keyword Keyword to search for in task descriptions.
+     * @return Matching tasks with their numbers from the complete list.
+     */
+    public List<NumberedTask> findByDescription(String keyword) {
+        String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
+        List<NumberedTask> matchingTasks = new ArrayList<>();
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            String normalizedDescription = task.getDescription().toLowerCase(Locale.ROOT);
+            if (normalizedDescription.contains(normalizedKeyword)) {
                 matchingTasks.add(new NumberedTask(i + 1, task));
             }
         }

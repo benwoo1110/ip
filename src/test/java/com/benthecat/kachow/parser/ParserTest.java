@@ -72,7 +72,7 @@ class ParserTest {
                         "That command stalled on the starting line. Enter a command to keep racing.",
                         empty.getMessage()),
                 () -> assertEquals(
-                        "That command took a wrong turn. Try todo, deadline, event, list, on, mark,"
+                        "That command took a wrong turn. Try todo, deadline, event, list, find, on, mark,"
                                 + " unmark, delete, or bye.",
                         unknown.getMessage()));
     }
@@ -157,6 +157,15 @@ class ParserTest {
         List<String> invalidCommands = List.of("on", "on 2019-12-03 0900", "on tomorrow");
         assertAll(invalidCommands.stream().map(command -> () ->
                 assertThrows(KachowException.class, () -> parser.parseDate(parser.parse(command)))));
+    }
+
+    @Test
+    void parseSearchKeyword_presentAndMissingArguments_followFindCommandRules() throws KachowException {
+        assertEquals("return book", parser.parseSearchKeyword(parser.parse("find return book")));
+
+        KachowException exception = assertThrows(KachowException.class,
+                () -> parser.parseSearchKeyword(parser.parse("find")));
+        assertEquals("Tell me which racer to search for. Use: find KEYWORD", exception.getMessage());
     }
 
     private Task parseTask(String input) throws KachowException {

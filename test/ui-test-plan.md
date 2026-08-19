@@ -452,7 +452,61 @@ bye
     Pit stop! That event is missing its /to finish line. Use: event DESCRIPTION /from START /to END
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, on, mark, unmark, delete, or bye.
+    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, find, on, mark, unmark, delete, or bye.
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-14 Find tasks by description keyword
+
+### Aim
+
+Verify that `find KEYWORD` searches only task descriptions without regard to letter case, keeps original task numbers and statuses across task types, reports no matches, and rejects a missing keyword.
+
+### Command
+
+```json
+["test/run-kachow-isolated.sh", "test/fixtures/persisted-tasks"]
+```
+
+### Inputs
+
+```text
+find BOOK
+find PROJECT
+find tires
+find
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! These racers matched your search:
+    1.[T][X] read book
+    2.[D][ ] return book (by: Jun 06 2019, 2:00 PM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! These racers matched your search:
+    3.[E][ ] project meeting (from: Aug 06 2019, 2:00 PM to: Aug 06 2019, 4:00 PM)
+    ____________________________________________________________
+    ____________________________________________________________
+    No racers matched "tires". Try another search lap.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Tell me which racer to search for. Use: find KEYWORD
     ____________________________________________________________
     ____________________________________________________________
     Race complete! Catch you on the next lap. Ka-chow!

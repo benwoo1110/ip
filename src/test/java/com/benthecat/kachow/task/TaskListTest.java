@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import com.benthecat.kachow.exception.KachowException;
 
 /**
- * Tests task state changes, deletion, renumbering, and date-based lookup.
+ * Tests task state changes, deletion, renumbering, and task lookup.
  */
 class TaskListTest {
     @Test
@@ -93,6 +93,29 @@ class TaskListTest {
                 () -> assertEquals(List.of(3),
                         secondDay.stream().map(TaskList.NumberedTask::number).toList()),
                 () -> assertTrue(tasks.findOn(LocalDate.of(2019, 12, 5)).isEmpty()));
+    }
+
+    @Test
+    void findByDescription_partialKeywordIgnoringCase_returnsAllTypesWithOriginalNumbers() {
+        Todo first = new Todo("Read Book", true);
+        Deadline second = new Deadline("return book", LocalDate.of(2019, 6, 6));
+        Event third = new Event(
+                "book club meeting",
+                new com.benthecat.kachow.parser.DateTimeParser.ParsedDateTime(
+                        LocalDateTime.of(2019, 8, 6, 14, 0)),
+                new com.benthecat.kachow.parser.DateTimeParser.ParsedDateTime(
+                        LocalDateTime.of(2019, 8, 6, 16, 0)));
+        Todo fourth = new Todo("wash car");
+        TaskList tasks = new TaskList(List.of(first, second, third, fourth));
+
+        List<TaskList.NumberedTask> matches = tasks.findByDescription("BOOK");
+
+        assertAll(
+                () -> assertEquals(List.of(1, 2, 3),
+                        matches.stream().map(TaskList.NumberedTask::number).toList()),
+                () -> assertEquals(List.of(first, second, third),
+                        matches.stream().map(TaskList.NumberedTask::task).toList()),
+                () -> assertTrue(tasks.findByDescription("race").isEmpty()));
     }
 
     @Test
