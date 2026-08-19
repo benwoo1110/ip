@@ -20,7 +20,7 @@ public class TaskList {
     /**
      * Creates a task list containing the supplied tasks in their existing order.
      *
-     * @param tasks tasks to place in the list
+     * @param tasks Tasks to place in the list.
      */
     public TaskList(List<Task> tasks) {
         this.tasks = new ArrayList<>(tasks);
@@ -67,12 +67,12 @@ public class TaskList {
     }
 
     /** Returns a read-only snapshot for display or persistence. */
-    public List<Task> asList() {
+    public List<Task> getTasks() {
         return List.copyOf(tasks);
     }
 
     /** Returns the number of tasks currently in the list. */
-    public int size() {
+    public int getSize() {
         return tasks.size();
     }
 

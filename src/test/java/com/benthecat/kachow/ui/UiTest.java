@@ -23,29 +23,29 @@ import com.benthecat.kachow.task.Todo;
  * Tests the complete console fragments used to list tasks and date matches.
  */
 class UiTest {
-    private final ByteArrayOutputStream output = new ByteArrayOutputStream();
-    private PrintStream originalOutput;
-    private Ui ui;
+    private final ByteArrayOutputStream capturedOutputStream = new ByteArrayOutputStream();
+    private PrintStream originalOutputStream;
+    private Ui userInterface;
 
     @BeforeEach
     void redirectStandardOutput() {
-        originalOutput = System.out;
-        System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
-        ui = new Ui();
+        originalOutputStream = System.out;
+        System.setOut(new PrintStream(capturedOutputStream, true, StandardCharsets.UTF_8));
+        userInterface = new Ui();
     }
 
     @AfterEach
     void restoreStandardOutput() {
-        System.setOut(originalOutput);
+        System.setOut(originalOutputStream);
     }
 
     @Test
     void showTaskList_emptyList_printsEmptyGridMessage() {
-        ui.showTaskList(new TaskList());
+        userInterface.showTaskList(new TaskList());
 
-        assertEquals(lines(
+        assertEquals(joinLines(
                 "    The starting grid is empty. Add a racer with todo, deadline, or event."),
-                capturedOutput());
+                getCapturedOutput());
     }
 
     @Test
@@ -58,15 +58,15 @@ class UiTest {
                         new DateTimeParser.ParsedDateTime(LocalDateTime.of(2019, 8, 6, 14, 0)),
                         new DateTimeParser.ParsedDateTime(LocalDateTime.of(2019, 8, 6, 16, 0)))));
 
-        ui.showTaskList(tasks);
+        userInterface.showTaskList(tasks);
 
-        assertEquals(lines(
+        assertEquals(joinLines(
                 "    Rev up! Here are the tasks in today's race:",
                 "    1.[T][X] read book",
                 "    2.[D][ ] return book (by: Jun 06 2019)",
                 "    3.[E][ ] project meeting (from: Aug 06 2019, 2:00 PM"
                         + " to: Aug 06 2019, 4:00 PM)"),
-                capturedOutput());
+                getCapturedOutput());
     }
 
     @Test
@@ -80,29 +80,29 @@ class UiTest {
                 new TaskList.NumberedTask(3, deadline),
                 new TaskList.NumberedTask(4, event));
 
-        ui.showTasksOn(LocalDate.of(2019, 12, 3), matchingTasks);
+        userInterface.showTasksOn(LocalDate.of(2019, 12, 3), matchingTasks);
 
-        assertEquals(lines(
+        assertEquals(joinLines(
                 "    Rev up! Here are the deadlines and events on Dec 03 2019:",
                 "    3.[D][ ] submit report (by: Dec 03 2019, 9:00 AM)",
                 "    4.[E][ ] conference (from: Dec 03 2019, 11:00 PM"
                         + " to: Dec 04 2019, 1:00 AM)"),
-                capturedOutput());
+                getCapturedOutput());
     }
 
     @Test
     void showTasksOn_noMatches_printsDateSpecificMessage() {
-        ui.showTasksOn(LocalDate.of(2019, 12, 5), List.of());
+        userInterface.showTasksOn(LocalDate.of(2019, 12, 5), List.of());
 
-        assertEquals(lines("    No deadlines or events are scheduled for Dec 05 2019."),
-                capturedOutput());
+        assertEquals(joinLines("    No deadlines or events are scheduled for Dec 05 2019."),
+                getCapturedOutput());
     }
 
-    private String capturedOutput() {
-        return output.toString(StandardCharsets.UTF_8);
+    private String getCapturedOutput() {
+        return capturedOutputStream.toString(StandardCharsets.UTF_8);
     }
 
-    private String lines(String... lines) {
+    private String joinLines(String... lines) {
         return String.join(System.lineSeparator(), lines) + System.lineSeparator();
     }
 }

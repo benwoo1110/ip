@@ -17,26 +17,26 @@ public class Kachow {
 
     private final Storage storage;
     private final TaskList tasks;
-    private final Ui ui;
+    private final Ui userInterface;
     private final Parser parser;
 
     /**
      * Creates a Kachow application backed by the given task data file.
      * Invalid stored data is reported and replaced with an empty in-memory task list so the UI can still run.
      *
-     * @param filePath path to the task data file
+     * @param filePath Path to the task data file.
      */
     public Kachow(String filePath) {
-        ui = new Ui();
+        userInterface = new Ui();
         parser = new Parser();
         storage = new Storage(Path.of(filePath));
 
-        ui.showWelcome();
+        userInterface.showWelcome();
         TaskList loadedTasks;
         try {
             loadedTasks = new TaskList(storage.load());
         } catch (KachowException exception) {
-            ui.showLoadingError(exception);
+            userInterface.showLoadingError(exception);
             loadedTasks = new TaskList();
         }
         tasks = loadedTasks;
@@ -44,67 +44,67 @@ public class Kachow {
 
     /** Processes commands until the user enters {@code bye} or standard input closes. */
     public void run() {
-        while (ui.hasNextCommand()) {
-            ui.showDivider();
+        while (userInterface.hasNextCommand()) {
+            userInterface.showDivider();
             try {
-                Parser.ParsedCommand command = parser.parse(ui.readCommand());
+                Parser.ParsedCommand command = parser.parse(userInterface.readCommand());
                 if (!execute(command)) {
                     return;
                 }
             } catch (KachowException exception) {
-                ui.showError(exception.getMessage());
+                userInterface.showError(exception.getMessage());
             }
-            ui.showDivider();
+            userInterface.showDivider();
         }
     }
 
     /**
      * Executes one validated command.
      *
-     * @param parsedCommand command and argument produced by {@link Parser}
-     * @return {@code false} only when the application should exit
-     * @throws KachowException if a task operation cannot be completed or persisted
+     * @param parsedCommand Command and argument produced by {@link Parser}.
+     * @return {@code false} only when the application should exit.
+     * @throws KachowException If a task operation cannot be completed or persisted.
      */
     private boolean execute(Parser.ParsedCommand parsedCommand) throws KachowException {
         return switch (parsedCommand.command()) {
         case BYE -> {
             parser.requireNoArgument(parsedCommand);
-            ui.showGoodbye();
+            userInterface.showGoodbye();
             yield false;
         }
         case LIST -> {
             parser.requireNoArgument(parsedCommand);
-            ui.showTaskList(tasks);
+            userInterface.showTaskList(tasks);
             yield true;
         }
         case TODO, DEADLINE, EVENT -> {
             Task task = parser.parseTask(parsedCommand);
             tasks.add(task);
-            storage.save(tasks.asList());
-            ui.showTaskAdded(task, tasks.size());
+            storage.save(tasks.getTasks());
+            userInterface.showTaskAdded(task, tasks.getSize());
             yield true;
         }
         case ON -> {
             var date = parser.parseDate(parsedCommand);
-            ui.showTasksOn(date, tasks.findOn(date));
+            userInterface.showTasksOn(date, tasks.findOn(date));
             yield true;
         }
         case MARK -> {
             Task task = tasks.mark(parser.parseTaskNumber(parsedCommand));
-            storage.save(tasks.asList());
-            ui.showTaskMarked(task);
+            storage.save(tasks.getTasks());
+            userInterface.showTaskMarked(task);
             yield true;
         }
         case UNMARK -> {
             Task task = tasks.unmark(parser.parseTaskNumber(parsedCommand));
-            storage.save(tasks.asList());
-            ui.showTaskUnmarked(task);
+            storage.save(tasks.getTasks());
+            userInterface.showTaskUnmarked(task);
             yield true;
         }
         case DELETE -> {
             Task task = tasks.delete(parser.parseTaskNumber(parsedCommand));
-            storage.save(tasks.asList());
-            ui.showTaskDeleted(task, tasks.size());
+            storage.save(tasks.getTasks());
+            userInterface.showTaskDeleted(task, tasks.getSize());
             yield true;
         }
         };

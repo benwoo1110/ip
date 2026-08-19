@@ -12,7 +12,7 @@ public abstract class Task {
     /**
      * Creates an incomplete task with the given description.
      *
-     * @param description text describing the task
+     * @param description Text describing the task.
      */
     public Task(String description) {
         this(description, false);
@@ -22,8 +22,8 @@ public abstract class Task {
      * Creates a task with the given description and completion status.
      * This constructor is used when restoring a task from storage.
      *
-     * @param description text describing the task
-     * @param isDone whether the task has been completed
+     * @param description Text describing the task.
+     * @param isDone Whether the task has been completed.
      */
     public Task(String description, boolean isDone) {
         this.description = description;
@@ -47,7 +47,7 @@ public abstract class Task {
     /**
      * Returns the task description without display formatting.
      *
-     * @return task description
+     * @return Task description.
      */
     public String getDescription() {
         return description;
@@ -56,7 +56,7 @@ public abstract class Task {
     /**
      * Reports whether the task has been completed.
      *
-     * @return {@code true} when the task is complete
+     * @return {@code true} when the task is complete.
      */
     public boolean isDone() {
         return isDone;
@@ -66,15 +66,15 @@ public abstract class Task {
      * Reports whether this task has a deadline or event occurrence on the given date.
      * Tasks without date parameters do not occur on any calendar date.
      *
-     * @param date calendar date to check
-     * @return {@code true} when this task occurs on the date
+     * @param date Calendar date to check.
+     * @return {@code true} when this task occurs on the date.
      */
     public abstract boolean occursOn(LocalDate date);
 
     /**
      * Returns the task description prefixed with its completion icon.
      *
-     * @return formatted status and description
+     * @return Formatted status and description.
      */
     public String getStatusText() {
         return (isDone ? "[X] " : "[ ] ") + description;
