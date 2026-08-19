@@ -105,11 +105,13 @@ public class Deadline extends Task {
         return by;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean occursOn(LocalDate date) {
         return by.date().equals(date);
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getStatusText() {
         return "[D]" + super.getStatusText() + " (by: " + DateTimeParser.format(by) + ")";

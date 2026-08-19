@@ -130,6 +130,12 @@ public final class DateTimeParser {
                 .orElseGet(() -> value.date().toString());
     }
 
+    /**
+     * Creates a case-insensitive formatter that rejects invalid calendar and clock values.
+     *
+     * @param pattern date or time pattern understood by {@link DateTimeFormatterBuilder}
+     * @return strict formatter using the English locale
+     */
     private static DateTimeFormatter strictFormatter(String pattern) {
         return new DateTimeFormatterBuilder()
                 .parseCaseInsensitive()
@@ -138,6 +144,15 @@ public final class DateTimeParser {
                 .withResolverStyle(ResolverStyle.STRICT);
     }
 
+    /**
+     * Parses a date using each supported input format.
+     * Padded ambiguous dates are interpreted as month-first, while other slash-separated dates
+     * are interpreted as day-first before the flexible US format is attempted.
+     *
+     * @param text date text to parse
+     * @return parsed calendar date
+     * @throws DateTimeParseException if the text does not match a supported date format
+     */
     private static LocalDate parseDate(String text) {
         if (PADDED_US_DATE_PATTERN.matcher(text).matches()) {
             try {
@@ -161,6 +176,13 @@ public final class DateTimeParser {
         throw new DateTimeParseException("Unsupported date format", text, 0);
     }
 
+    /**
+     * Parses a time using the supported 24-hour and AM/PM input formats.
+     *
+     * @param text time text to parse
+     * @return parsed local time
+     * @throws DateTimeParseException if the text does not match a supported time format
+     */
     private static LocalTime parseTime(String text) {
         for (DateTimeFormatter formatter : TIME_FORMATS) {
             try {

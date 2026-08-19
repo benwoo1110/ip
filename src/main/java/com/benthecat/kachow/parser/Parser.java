@@ -22,6 +22,11 @@ public class Parser {
     private static final String DATE_TIME_FORMAT_GUIDANCE =
             "Use " + DATE_FORMATS_TEXT + ", optionally followed by HHmm, HH:mm, or an AM/PM time.";
 
+    /** Creates a parser for Kachow's supported console commands. */
+    public Parser() {
+        // This parser has no mutable state to initialize.
+    }
+
     /**
      * Separates one input line into its command and argument.
      *

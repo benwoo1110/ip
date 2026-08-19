@@ -27,6 +27,7 @@ class UiTest {
     private PrintStream originalOutput;
     private Ui ui;
 
+    /** Redirects standard output so each UI test can inspect its console text. */
     @BeforeEach
     void redirectStandardOutput() {
         originalOutput = System.out;
@@ -34,11 +35,13 @@ class UiTest {
         ui = new Ui();
     }
 
+    /** Restores standard output after each UI test. */
     @AfterEach
     void restoreStandardOutput() {
         System.setOut(originalOutput);
     }
 
+    /** Verifies the message shown for an empty task list. */
     @Test
     void showTaskList_emptyList_printsEmptyGridMessage() {
         ui.showTaskList(new TaskList());
@@ -48,6 +51,7 @@ class UiTest {
                 capturedOutput());
     }
 
+    /** Verifies numbering and status text for a task list containing every task type. */
     @Test
     void showTaskList_mixedTasks_printsNumberedStatusText() {
         TaskList tasks = new TaskList(List.of(
@@ -69,6 +73,7 @@ class UiTest {
                 capturedOutput());
     }
 
+    /** Verifies that matching dated tasks retain their numbers from the complete list. */
     @Test
     void showTasksOn_matches_printsOriginalTaskNumbers() {
         Deadline deadline = new Deadline("submit report", LocalDateTime.of(2019, 12, 3, 9, 0));
@@ -90,6 +95,7 @@ class UiTest {
                 capturedOutput());
     }
 
+    /** Verifies the date-specific message shown when no tasks match. */
     @Test
     void showTasksOn_noMatches_printsDateSpecificMessage() {
         ui.showTasksOn(LocalDate.of(2019, 12, 5), List.of());
