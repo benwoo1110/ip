@@ -1,4 +1,6 @@
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -10,6 +12,12 @@ public class Kachow {
     private static final String DIVIDER = "____________________________________________________________";
     private static final String DEADLINE_USAGE = "deadline DESCRIPTION /by DATE_OR_TIME";
     private static final String EVENT_USAGE = "event DESCRIPTION /from START /to END";
+    private static final String ON_USAGE = "on DATE";
+    private static final String DATE_FORMATS_TEXT =
+            "yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US)";
+    private static final String DATE_FORMAT_GUIDANCE = "Use " + DATE_FORMATS_TEXT + ".";
+    private static final String DATE_TIME_FORMAT_GUIDANCE =
+            "Use " + DATE_FORMATS_TEXT + ", optionally followed by HHmm, HH:mm, or an AM/PM time.";
     private static final Path DATA_FILE = Path.of("./data/kachow.txt");
 
     /**
@@ -63,6 +71,7 @@ public class Kachow {
                     break commandLoop;
                 }
                 case LIST -> handleListCommand(tasks, argument);
+                case ON -> handleOnCommand(tasks, argument);
                 case MARK -> handleMarkCommand(tasks, argument, storage);
                 case UNMARK -> handleUnmarkCommand(tasks, argument, storage);
                 case DELETE -> handleDeleteCommand(tasks, argument, storage);
@@ -114,6 +123,48 @@ public class Kachow {
     }
 
     /**
+     * Lists deadlines due and events occurring on a user-supplied date.
+     * Original task numbers are retained so the displayed tasks can be used with other commands.
+     *
+     * @param tasks tasks currently stored in memory
+     * @param argument date to query in any supported date format
+     * @throws KachowException if the date is missing, invalid, or includes a time
+     */
+    private static void handleOnCommand(List<Task> tasks, String argument) throws KachowException {
+        if (argument.isEmpty()) {
+            throw new KachowException("Tell me which race date to check. Use: " + ON_USAGE);
+        }
+
+        DateTimeParser.ParsedDateTime parsedDate;
+        try {
+            parsedDate = DateTimeParser.parse(argument);
+        } catch (DateTimeParseException exception) {
+            throw new KachowException("That date is invalid. " + DATE_FORMAT_GUIDANCE, exception);
+        }
+        if (parsedDate.time().isPresent()) {
+            throw new KachowException("The on command needs a date without a time. Use: " + ON_USAGE);
+        }
+
+        LocalDate date = parsedDate.date();
+        boolean foundTask = false;
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).occursOn(date)) {
+                if (!foundTask) {
+                    System.out.println(
+                            INDENT + "Rev up! Here are the deadlines and events on "
+                                    + DateTimeParser.format(date) + ":");
+                }
+                System.out.println(INDENT + (i + 1) + "." + tasks.get(i).getStatusText());
+                foundTask = true;
+            }
+        }
+        if (!foundTask) {
+            System.out.println(
+                    INDENT + "No deadlines or events are scheduled for " + DateTimeParser.format(date) + ".");
+        }
+    }
+
+    /**
      * Adds a todo task when its description is present.
      *
      * @param tasks tasks currently stored in memory
@@ -160,7 +211,25 @@ public class Kachow {
             throw new KachowException(
                     "That deadline needs a date or time after /by. Use: " + DEADLINE_USAGE);
         }
-        addTask(tasks, new Deadline(description, by), storage);
+        addTask(tasks, parseDeadline(description, by), storage);
+    }
+
+    /**
+     * Parses a deadline using the supported date-only and date-time formats.
+     *
+     * @param description text describing the deadline
+     * @param by user-entered due date and optional time
+     * @return deadline containing typed date/time values
+     * @throws KachowException if the due value does not match a supported format or calendar date
+     */
+    private static Deadline parseDeadline(String description, String by) throws KachowException {
+        try {
+            return new Deadline(description, DateTimeParser.parse(by));
+        } catch (DateTimeParseException exception) {
+            throw new KachowException(
+                    "That deadline date or time is invalid. " + DATE_TIME_FORMAT_GUIDANCE,
+                    exception);
+        }
     }
 
     /**
@@ -207,7 +276,44 @@ public class Kachow {
         if (to.isEmpty()) {
             throw new KachowException("That event needs an end after /to. Use: " + EVENT_USAGE);
         }
-        addTask(tasks, new Event(description, from, to), storage);
+        addTask(tasks, parseEvent(description, from, to), storage);
+    }
+
+    /**
+     * Parses both event date/time parameters through the common parser.
+     * A time-only end value uses the event's start date.
+     */
+    private static Event parseEvent(String description, String from, String to) throws KachowException {
+        DateTimeParser.ParsedDateTime parsedFrom;
+        try {
+            parsedFrom = DateTimeParser.parse(from);
+        } catch (DateTimeParseException exception) {
+            throw invalidEventDateTime("start", exception);
+        }
+
+        DateTimeParser.ParsedDateTime parsedTo;
+        try {
+            parsedTo = DateTimeParser.parse(to, parsedFrom.date());
+        } catch (DateTimeParseException exception) {
+            throw invalidEventDateTime("end", exception);
+        }
+
+        try {
+            return new Event(description, parsedFrom, parsedTo);
+        } catch (IllegalArgumentException exception) {
+            throw new KachowException(
+                    "That event ends before it starts. Use a full /to date for an overnight event.",
+                    exception);
+        }
+    }
+
+    /**
+     * Creates consistent, parameter-specific guidance for an invalid event date/time.
+     */
+    private static KachowException invalidEventDateTime(String parameter, DateTimeParseException cause) {
+        return new KachowException(
+                "That event " + parameter + " date or time is invalid. " + DATE_TIME_FORMAT_GUIDANCE,
+                cause);
     }
 
     /**

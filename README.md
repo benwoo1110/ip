@@ -32,17 +32,17 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
        Now you've got 1 racer ready to roll.
        ____________________________________________________________
 
-   deadline return book /by Sunday
+   deadline return book /by 2/12/2019 1800
        ____________________________________________________________
        Ka-chow! A new racer joined the starting grid:
-         [D][ ] return book (by: Sunday)
+         [D][ ] return book (by: Dec 02 2019, 6:00 PM)
        Now you've got 2 racers ready to roll.
        ____________________________________________________________
 
-   event project meeting /from Mon 2pm /to 4pm
+   event project meeting /from 3/12/2019 1400 /to 1600
        ____________________________________________________________
        Ka-chow! A new racer joined the starting grid:
-         [E][ ] project meeting (from: Mon 2pm to: 4pm)
+         [E][ ] project meeting (from: Dec 03 2019, 2:00 PM to: Dec 03 2019, 4:00 PM)
        Now you've got 3 racers ready to roll.
        ____________________________________________________________
 
@@ -50,28 +50,28 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
        ____________________________________________________________
        Rev up! Here are the tasks in today's race:
        1.[T][ ] read book
-       2.[D][ ] return book (by: Sunday)
-       3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+       2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
+       3.[E][ ] project meeting (from: Dec 03 2019, 2:00 PM to: Dec 03 2019, 4:00 PM)
        ____________________________________________________________
 
    mark 2
        ____________________________________________________________
        Ka-chow! This task crossed the finish line:
-         [D][X] return book (by: Sunday)
+         [D][X] return book (by: Dec 02 2019, 6:00 PM)
        ____________________________________________________________
 
    list
        ____________________________________________________________
        Rev up! Here are the tasks in today's race:
        1.[T][ ] read book
-       2.[D][X] return book (by: Sunday)
-       3.[E][ ] project meeting (from: Mon 2pm to: 4pm)
+       2.[D][X] return book (by: Dec 02 2019, 6:00 PM)
+       3.[E][ ] project meeting (from: Dec 03 2019, 2:00 PM to: Dec 03 2019, 4:00 PM)
        ____________________________________________________________
 
    unmark 2
        ____________________________________________________________
        Back to the starting grid! This task is not done yet:
-         [D][ ] return book (by: Sunday)
+         [D][ ] return book (by: Dec 02 2019, 6:00 PM)
        ____________________________________________________________
 
    bye
@@ -82,7 +82,16 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 
 All output produced by Kachow is indented by four spaces to distinguish it from
 the user's input. Add tasks with `todo DESCRIPTION`, `deadline DESCRIPTION /by
-DATE_OR_TIME`, or `event DESCRIPTION /from START /to END`. Tasks are loaded from
+DATE_OR_TIME`, or `event DESCRIPTION /from START /to END`. Deadline and event
+dates accept `yyyy-MM-dd`, `yyyy/M/d`, `d/M/yyyy`, or padded US-style
+`MM/dd/yyyy`; add a time as `HHmm`, `HH:mm`, or an
+AM/PM time such as `6pm` or `6 PM`. A time-only event end uses the event's start date and must not be
+earlier than its start; use a full end date for an overnight event.
+Use `on DATE` to list deadlines due and events occurring on a date. The command
+retains the original task numbers, making its results usable with `mark`,
+`unmark`, and `delete`. To preserve `2/12/2019` as 2 December, ambiguous US
+dates must be zero-padded, for example `12/02/2019` for December 2.
+Tasks are loaded from
 `./data/kachow.txt` when Kachow starts and are saved there automatically after
 every add, mark, unmark, or delete command. Kachow creates the `data` directory
 and file automatically on first use. Enter `list` to display the saved tasks.

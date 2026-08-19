@@ -1,3 +1,5 @@
+import java.time.LocalDate;
+
 /**
  * Represents a task without an attached date or time.
  */
@@ -19,6 +21,11 @@ public class Todo extends Task {
      */
     public Todo(String description, boolean isDone) {
         super(description, isDone);
+    }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return false;
     }
 
     @Override
