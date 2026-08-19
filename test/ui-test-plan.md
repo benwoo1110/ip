@@ -3,7 +3,7 @@
 ## Test setup
 
 - Runtime: Java 25.
-- Compile before testing with `javac -d _temp/ui-test-classes src/main/java/Command.java src/main/java/DateTimeParser.java src/main/java/Deadline.java src/main/java/Event.java src/main/java/Kachow.java src/main/java/KachowException.java src/main/java/Storage.java src/main/java/Task.java src/main/java/Todo.java`.
+- Compile before testing with `javac -d _temp/ui-test-classes src/main/java/Command.java src/main/java/DateTimeParser.java src/main/java/Deadline.java src/main/java/Event.java src/main/java/Kachow.java src/main/java/KachowException.java src/main/java/Parser.java src/main/java/Storage.java src/main/java/Task.java src/main/java/TaskList.java src/main/java/Todo.java src/main/java/Ui.java`.
 - Make the test launcher executable with `chmod +x test/run-kachow-isolated.sh`.
 - Run every case from the repository root in a fresh JVM. The launcher uses a fresh working directory for each case, so generated task data cannot leak between cases. A case may instead name a read-only fixture directory when it needs predefined stored data.
 - Compare combined console output exactly after normalizing CRLF line endings to LF.
