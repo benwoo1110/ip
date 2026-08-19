@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,11 +101,11 @@ public class Storage {
         }
         case "D" -> {
             requireFieldCount(fields, 4, lineNumber);
-            yield new Deadline(fields[2], fields[3], isDone);
+            yield parseDeadline(fields[2], fields[3], isDone, lineNumber);
         }
         case "E" -> {
             requireFieldCount(fields, 5, lineNumber);
-            yield new Event(fields[2], fields[3], fields[4], isDone);
+            yield parseEvent(fields[2], fields[3], fields[4], isDone, lineNumber);
         }
         default -> throw invalidData(lineNumber);
         };
@@ -121,11 +122,45 @@ public class Storage {
         return switch (task) {
             case Todo todo -> String.join(FIELD_SEPARATOR, "T", status, task.getDescription());
             case Deadline deadline ->
-                    String.join(FIELD_SEPARATOR, "D", status, task.getDescription(), deadline.getBy());
+                    String.join(FIELD_SEPARATOR, "D", status, task.getDescription(),
+                            DateTimeParser.formatForStorage(deadline.getByValue()));
             case Event event -> String.join(
-                    FIELD_SEPARATOR, "E", status, task.getDescription(), event.getFrom(), event.getTo());
+                    FIELD_SEPARATOR, "E", status, task.getDescription(),
+                    DateTimeParser.formatForStorage(event.getFrom()),
+                    DateTimeParser.formatForStorage(event.getTo()));
             default -> throw new IllegalArgumentException("Unsupported task type: " + task.getClass().getName());
         };
+    }
+
+    /** Restores a deadline from its canonical ISO date or date-time representation. */
+    private Deadline parseDeadline(String description, String by, boolean isDone, int lineNumber)
+            throws KachowException {
+        return new Deadline(description, parseDateTime(by, lineNumber), isDone);
+    }
+
+    /** Restores an event while enforcing its chronological range invariant. */
+    private Event parseEvent(String description, String from, String to, boolean isDone, int lineNumber)
+            throws KachowException {
+        try {
+            return new Event(
+                    description,
+                    parseDateTime(from, lineNumber),
+                    parseDateTime(to, lineNumber),
+                    isDone);
+        } catch (IllegalArgumentException exception) {
+            throw invalidData(lineNumber);
+        }
+    }
+
+    /**
+     * Parses any stored task date/time through the common parser.
+     */
+    private DateTimeParser.ParsedDateTime parseDateTime(String value, int lineNumber) throws KachowException {
+        try {
+            return DateTimeParser.parse(value);
+        } catch (DateTimeParseException exception) {
+            throw invalidData(lineNumber);
+        }
     }
 
     /**

@@ -1,57 +1,64 @@
+import java.util.Objects;
+
 /**
  * Represents a task that takes place between specified start and end times.
  */
 public class Event extends Task {
-    private final String from;
-    private final String to;
+    private final DateTimeParser.ParsedDateTime from;
+    private final DateTimeParser.ParsedDateTime to;
 
     /**
      * Creates an incomplete event task.
      *
      * @param description text describing the event
-     * @param from date or time at which the event starts
-     * @param to date or time at which the event ends
+     * @param from parsed date and optional time at which the event starts
+     * @param to parsed date and optional time at which the event ends
+     * @throws IllegalArgumentException if the event ends before it starts
      */
-    public Event(String description, String from, String to) {
-        super(description);
-        this.from = from;
-        this.to = to;
+    public Event(String description, DateTimeParser.ParsedDateTime from, DateTimeParser.ParsedDateTime to) {
+        this(description, from, to, false);
     }
 
     /**
      * Creates an event with a restored completion status.
      *
      * @param description text describing the event
-     * @param from date or time at which the event starts
-     * @param to date or time at which the event ends
+     * @param from parsed date and optional time at which the event starts
+     * @param to parsed date and optional time at which the event ends
      * @param isDone whether the event has been completed
+     * @throws IllegalArgumentException if the event ends before it starts
      */
-    public Event(String description, String from, String to, boolean isDone) {
+    public Event(String description, DateTimeParser.ParsedDateTime from, DateTimeParser.ParsedDateTime to,
+            boolean isDone) {
         super(description, isDone);
-        this.from = from;
-        this.to = to;
+        this.from = Objects.requireNonNull(from);
+        this.to = Objects.requireNonNull(to);
+        if (to.toLocalDateTime().isBefore(from.toLocalDateTime())) {
+            throw new IllegalArgumentException("An event cannot end before it starts.");
+        }
     }
 
     /**
-     * Returns the event's start without display formatting.
+     * Returns the event's parsed start without display formatting.
      *
-     * @return event start
+     * @return parsed event start
      */
-    public String getFrom() {
+    public DateTimeParser.ParsedDateTime getFrom() {
         return from;
     }
 
     /**
-     * Returns the event's end without display formatting.
+     * Returns the event's parsed end without display formatting.
      *
-     * @return event end
+     * @return parsed event end
      */
-    public String getTo() {
+    public DateTimeParser.ParsedDateTime getTo() {
         return to;
     }
 
     @Override
     public String getStatusText() {
-        return "[E]" + super.getStatusText() + " (from: " + from + " to: " + to + ")";
+        return "[E]" + super.getStatusText()
+                + " (from: " + DateTimeParser.format(from) + " to: " + DateTimeParser.format(to) + ")";
     }
 }
