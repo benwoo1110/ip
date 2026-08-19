@@ -111,21 +111,21 @@ class UiTest {
                 new TaskList.NumberedTask(3,
                         new Deadline("return book", LocalDate.of(2019, 6, 6))));
 
-        ui.showSearchResults("book", matchingTasks);
+        userInterface.showSearchResults("book", matchingTasks);
 
-        assertEquals(lines(
+        assertEquals(joinLines(
                 "    Ka-chow! These racers matched your search:",
                 "    1.[T][X] read book",
                 "    3.[D][ ] return book (by: Jun 06 2019)"),
-                capturedOutput());
+                getCapturedOutput());
     }
 
     @Test
     void showSearchResults_noMatches_printsKeywordSpecificMessage() {
-        ui.showSearchResults("tires", List.of());
+        userInterface.showSearchResults("tires", List.of());
 
-        assertEquals(lines("    No racers matched \"tires\". Try another search lap."),
-                capturedOutput());
+        assertEquals(joinLines("    No racers matched \"tires\". Try another search lap."),
+                getCapturedOutput());
     }
 
     private String getCapturedOutput() {

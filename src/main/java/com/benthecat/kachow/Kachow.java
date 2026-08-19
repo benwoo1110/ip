@@ -79,7 +79,7 @@ public class Kachow {
         }
         case FIND -> {
             String keyword = parser.parseSearchKeyword(parsedCommand);
-            ui.showSearchResults(keyword, tasks.findByDescription(keyword));
+            userInterface.showSearchResults(keyword, tasks.findByDescription(keyword));
             yield true;
         }
         case TODO, DEADLINE, EVENT -> {
