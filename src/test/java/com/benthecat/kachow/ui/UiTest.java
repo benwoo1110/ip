@@ -20,7 +20,7 @@ import com.benthecat.kachow.task.TaskList;
 import com.benthecat.kachow.task.Todo;
 
 /**
- * Tests the complete console fragments used to list tasks and date matches.
+ * Tests the complete console fragments used to list tasks and lookup matches.
  */
 class UiTest {
     private final ByteArrayOutputStream capturedOutputStream = new ByteArrayOutputStream();
@@ -102,6 +102,30 @@ class UiTest {
 
         assertEquals(joinLines("    No deadlines or events are scheduled for Dec 05 2019."),
                 getCapturedOutput());
+    }
+
+    @Test
+    void showSearchResults_matches_printsOriginalTaskNumbers() {
+        List<TaskList.NumberedTask> matchingTasks = List.of(
+                new TaskList.NumberedTask(1, new Todo("read book", true)),
+                new TaskList.NumberedTask(3,
+                        new Deadline("return book", LocalDate.of(2019, 6, 6))));
+
+        ui.showSearchResults("book", matchingTasks);
+
+        assertEquals(lines(
+                "    Ka-chow! These racers matched your search:",
+                "    1.[T][X] read book",
+                "    3.[D][ ] return book (by: Jun 06 2019)"),
+                capturedOutput());
+    }
+
+    @Test
+    void showSearchResults_noMatches_printsKeywordSpecificMessage() {
+        ui.showSearchResults("tires", List.of());
+
+        assertEquals(lines("    No racers matched \"tires\". Try another search lap."),
+                capturedOutput());
     }
 
     private String getCapturedOutput() {

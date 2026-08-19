@@ -77,6 +77,11 @@ public class Kachow {
             userInterface.showTaskList(tasks);
             yield true;
         }
+        case FIND -> {
+            String keyword = parser.parseSearchKeyword(parsedCommand);
+            ui.showSearchResults(keyword, tasks.findByDescription(keyword));
+            yield true;
+        }
         case TODO, DEADLINE, EVENT -> {
             Task task = parser.parseTask(parsedCommand);
             tasks.add(task);

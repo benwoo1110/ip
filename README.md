@@ -91,6 +91,8 @@ Use `on DATE` to list deadlines due and events occurring on a date. The command
 retains the original task numbers, making its results usable with `mark`,
 `unmark`, and `delete`. To preserve `2/12/2019` as 2 December, ambiguous US
 dates must be zero-padded, for example `12/02/2019` for December 2.
+Use `find KEYWORD` to search task descriptions without regard to letter case.
+Search results also retain the tasks' original numbers.
 Tasks are loaded from
 `./data/kachow.txt` when Kachow starts and are saved there automatically after
 every add, mark, unmark, or delete command. Kachow creates the `data` directory

@@ -15,6 +15,7 @@ import com.benthecat.kachow.task.Todo;
 public class Parser {
     private static final String USAGE_DEADLINE = "deadline DESCRIPTION /by DATE_OR_TIME";
     private static final String USAGE_EVENT = "event DESCRIPTION /from START /to END";
+    private static final String USAGE_FIND = "find KEYWORD";
     private static final String USAGE_ON = "on DATE";
     private static final String DATE_FORMATS_TEXT =
             "yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US)";
@@ -205,6 +206,21 @@ public class Parser {
             throw new KachowException("The on command needs a date without a time. Use: " + USAGE_ON);
         }
         return parsedDate.date();
+    }
+
+    /**
+     * Returns the non-empty keyword accepted by the {@code find} command.
+     *
+     * @param parsedCommand Find command to parse.
+     * @return Keyword to search for in task descriptions.
+     * @throws KachowException If the keyword is missing.
+     */
+    public String parseSearchKeyword(ParsedCommand parsedCommand) throws KachowException {
+        String keyword = parsedCommand.argument();
+        if (keyword.isEmpty()) {
+            throw new KachowException("Tell me which racer to search for. Use: " + USAGE_FIND);
+        }
+        return keyword;
     }
 
     /**

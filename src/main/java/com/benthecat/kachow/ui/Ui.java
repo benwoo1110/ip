@@ -77,6 +77,18 @@ public class Ui {
         }
     }
 
+    /** Displays tasks whose descriptions match a search keyword. */
+    public void showSearchResults(String keyword, List<TaskList.NumberedTask> matchingTasks) {
+        if (matchingTasks.isEmpty()) {
+            showLine("No racers matched \"" + keyword + "\". Try another search lap.");
+            return;
+        }
+        showLine("Ka-chow! These racers matched your search:");
+        for (TaskList.NumberedTask numberedTask : matchingTasks) {
+            showLine(numberedTask.number() + "." + numberedTask.task().getStatusText());
+        }
+    }
+
     /** Displays confirmation after a task is added. */
     public void showTaskAdded(Task task, int taskCount) {
         showLine("Ka-chow! A new racer joined the starting grid:");

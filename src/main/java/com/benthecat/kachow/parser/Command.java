@@ -10,6 +10,7 @@ public enum Command {
     DEADLINE("deadline"),
     EVENT("event"),
     LIST("list"),
+    FIND("find"),
     ON("on"),
     MARK("mark"),
     UNMARK("unmark"),
