@@ -15,6 +15,27 @@ public class Deadline extends Task {
         this.by = by;
     }
 
+    /**
+     * Creates a deadline with a restored completion status.
+     *
+     * @param description text describing the task
+     * @param by date or time by which the task must be completed
+     * @param isDone whether the task has been completed
+     */
+    public Deadline(String description, String by, boolean isDone) {
+        super(description, isDone);
+        this.by = by;
+    }
+
+    /**
+     * Returns the deadline's due date or time without display formatting.
+     *
+     * @return deadline date or time
+     */
+    public String getBy() {
+        return by;
+    }
+
     @Override
     public String getStatusText() {
         return "[D]" + super.getStatusText() + " (by: " + by + ")";

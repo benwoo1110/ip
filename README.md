@@ -82,8 +82,10 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 
 All output produced by Kachow is indented by four spaces to distinguish it from
 the user's input. Add tasks with `todo DESCRIPTION`, `deadline DESCRIPTION /by
-DATE_OR_TIME`, or `event DESCRIPTION /from START /to END`. Tasks are kept in
-memory for the duration of the program and can be displayed by entering `list`.
+DATE_OR_TIME`, or `event DESCRIPTION /from START /to END`. Tasks are loaded from
+`./data/kachow.txt` when Kachow starts and are saved there automatically after
+every add, mark, unmark, or delete command. Kachow creates the `data` directory
+and file automatically on first use. Enter `list` to display the saved tasks.
 Use `mark NUMBER` or `unmark NUMBER` to change a task's completion status; task
 numbers start at 1 as shown by `list`. Use `delete NUMBER` to remove a task from
 the race; the remaining tasks are renumbered automatically.

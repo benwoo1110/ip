@@ -11,6 +11,16 @@ public class Todo extends Task {
         super(description);
     }
 
+    /**
+     * Creates a todo task with a restored completion status.
+     *
+     * @param description text describing the task
+     * @param isDone whether the task has been completed
+     */
+    public Todo(String description, boolean isDone) {
+        super(description, isDone);
+    }
+
     @Override
     public String getStatusText() {
         return "[T]" + super.getStatusText();
