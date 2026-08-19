@@ -3,8 +3,9 @@
 ## Test setup
 
 - Runtime: Java 25.
-- Compile before testing with `javac -d _temp/ui-test-classes src/main/java/Command.java src/main/java/Deadline.java src/main/java/Event.java src/main/java/Kachow.java src/main/java/KachowException.java src/main/java/Task.java src/main/java/Todo.java`.
-- Run every case from the repository root in a fresh JVM. Kachow stores tasks only in memory, so cases do not share state.
+- Compile before testing with `javac -d _temp/ui-test-classes src/main/java/Command.java src/main/java/Deadline.java src/main/java/Event.java src/main/java/Kachow.java src/main/java/KachowException.java src/main/java/Storage.java src/main/java/Task.java src/main/java/Todo.java`.
+- Make the test launcher executable with `chmod +x test/run-kachow-isolated.sh`.
+- Run every case from the repository root in a fresh JVM. The launcher uses a fresh working directory for each case, so generated task data cannot leak between cases. A case may instead name a read-only fixture directory when it needs predefined stored data.
 - Compare combined console output exactly after normalizing CRLF line endings to LF.
 
 ## Test Case: UI-01 Start and exit cleanly
@@ -16,7 +17,7 @@ Verify that Kachow displays its welcome banner and exits with the documented far
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs
@@ -42,6 +43,49 @@ bye
     ____________________________________________________________
 ```
 
+## Test Case: UI-10 Load persisted tasks on startup
+
+### Aim
+
+Verify that Kachow restores every task type and its completion status from `data/kachow.txt` when a new chatbot process starts.
+
+### Command
+
+```json
+["test/run-kachow-isolated.sh", "test/fixtures/persisted-tasks"]
+```
+
+### Inputs
+
+```text
+list
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[T][X] read book
+    2.[D][ ] return book (by: June 6th)
+    3.[E][ ] project meeting (from: Aug 6th 2pm to: 4pm)
+    4.[T][X] join sports club
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
 ## Test Case: UI-02 Manage todos, deadlines, and events
 
 ### Aim
@@ -51,7 +95,7 @@ Verify that all three task types can be added and listed, and that marking and u
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs
@@ -135,7 +179,7 @@ Verify that missing task details and unknown instructions produce specific, them
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs
@@ -186,7 +230,7 @@ Verify that deleting a task shows the removed task and updated task count, and t
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs
@@ -289,7 +333,7 @@ Verify that nonnumeric and out-of-range task numbers are rejected, while valid m
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs
@@ -356,7 +400,7 @@ Verify that an empty command and extra arguments for argument-free commands rece
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs
@@ -407,7 +451,7 @@ Verify that each missing, duplicated, misplaced, or invalid command component re
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs
@@ -494,7 +538,7 @@ Verify that missing, nonnumeric, nonpositive, extra, and out-of-range delete arg
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs
@@ -598,7 +642,7 @@ Verify that deleting the first, last, and only tasks preserves task details and 
 ### Command
 
 ```json
-["java", "-cp", "_temp/ui-test-classes", "Kachow"]
+["test/run-kachow-isolated.sh"]
 ```
 
 ### Inputs

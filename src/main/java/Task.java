@@ -11,8 +11,19 @@ public abstract class Task {
      * @param description text describing the task
      */
     public Task(String description) {
+        this(description, false);
+    }
+
+    /**
+     * Creates a task with the given description and completion status.
+     * This constructor is used when restoring a task from storage.
+     *
+     * @param description text describing the task
+     * @param isDone whether the task has been completed
+     */
+    public Task(String description, boolean isDone) {
         this.description = description;
-        this.isDone = false;
+        this.isDone = isDone;
     }
 
     /**
@@ -27,6 +38,24 @@ public abstract class Task {
      */
     public void markAsNotDone() {
         isDone = false;
+    }
+
+    /**
+     * Returns the task description without display formatting.
+     *
+     * @return task description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Reports whether the task has been completed.
+     *
+     * @return {@code true} when the task is complete
+     */
+    public boolean isDone() {
+        return isDone;
     }
 
     /**

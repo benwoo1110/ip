@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
@@ -10,6 +10,7 @@ public class Kachow {
     private static final String DIVIDER = "____________________________________________________________";
     private static final String DEADLINE_USAGE = "deadline DESCRIPTION /by DATE_OR_TIME";
     private static final String EVENT_USAGE = "event DESCRIPTION /from START /to END";
+    private static final Path DATA_FILE = Path.of("./data/kachow.txt");
 
     /**
      * Starts Kachow and processes commands until the user enters {@code bye}.
@@ -29,7 +30,14 @@ public class Kachow {
         System.out.println(INDENT + "What can I do for you before the next lap?");
         System.out.println(INDENT + DIVIDER);
 
-        List<Task> tasks = new ArrayList<>();
+        Storage storage = new Storage(DATA_FILE);
+        List<Task> tasks;
+        try {
+            tasks = storage.load();
+        } catch (KachowException exception) {
+            printError(exception.getMessage());
+            return;
+        }
         Scanner scanner = new Scanner(System.in);
         commandLoop:
         while (scanner.hasNextLine()) {
@@ -55,12 +63,12 @@ public class Kachow {
                     break commandLoop;
                 }
                 case LIST -> handleListCommand(tasks, argument);
-                case MARK -> handleMarkCommand(tasks, argument);
-                case UNMARK -> handleUnmarkCommand(tasks, argument);
-                case DELETE -> handleDeleteCommand(tasks, argument);
-                case TODO -> addTodo(tasks, argument);
-                case DEADLINE -> addDeadline(tasks, argument);
-                case EVENT -> addEvent(tasks, argument);
+                case MARK -> handleMarkCommand(tasks, argument, storage);
+                case UNMARK -> handleUnmarkCommand(tasks, argument, storage);
+                case DELETE -> handleDeleteCommand(tasks, argument, storage);
+                case TODO -> addTodo(tasks, argument, storage);
+                case DEADLINE -> addDeadline(tasks, argument, storage);
+                case EVENT -> addEvent(tasks, argument, storage);
                 }
             } catch (KachowException exception) {
                 printError(exception.getMessage());
@@ -110,13 +118,14 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param description text describing the todo
+     * @param storage persistent task storage
      * @throws KachowException if the description is empty
      */
-    private static void addTodo(List<Task> tasks, String description) throws KachowException {
+    private static void addTodo(List<Task> tasks, String description, Storage storage) throws KachowException {
         if (description.isBlank()) {
             throw new KachowException("This racer needs a name. Use: todo DESCRIPTION");
         }
-        addTask(tasks, new Todo(description));
+        addTask(tasks, new Todo(description), storage);
     }
 
     /**
@@ -124,9 +133,10 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument deadline description and due date or time
+     * @param storage persistent task storage
      * @throws KachowException if a required deadline component is invalid or missing
      */
-    private static void addDeadline(List<Task> tasks, String argument) throws KachowException {
+    private static void addDeadline(List<Task> tasks, String argument, Storage storage) throws KachowException {
         int byIndex = findToken(argument, "/by", 0);
         if (argument.isEmpty() || byIndex == 0) {
             throw new KachowException(
@@ -150,7 +160,7 @@ public class Kachow {
             throw new KachowException(
                     "That deadline needs a date or time after /by. Use: " + DEADLINE_USAGE);
         }
-        addTask(tasks, new Deadline(description, by));
+        addTask(tasks, new Deadline(description, by), storage);
     }
 
     /**
@@ -159,9 +169,10 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument event description, start, and end
+     * @param storage persistent task storage
      * @throws KachowException if a required event component is invalid or missing
      */
-    private static void addEvent(List<Task> tasks, String argument) throws KachowException {
+    private static void addEvent(List<Task> tasks, String argument, Storage storage) throws KachowException {
         int fromIndex = findToken(argument, "/from", 0);
         int firstToIndex = findToken(argument, "/to", 0);
         if (argument.isEmpty() || fromIndex == 0) {
@@ -196,7 +207,7 @@ public class Kachow {
         if (to.isEmpty()) {
             throw new KachowException("That event needs an end after /to. Use: " + EVENT_USAGE);
         }
-        addTask(tasks, new Event(description, from, to));
+        addTask(tasks, new Event(description, from, to), storage);
     }
 
     /**
@@ -226,9 +237,12 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param task task to add
+     * @param storage persistent task storage
+     * @throws KachowException if the updated task list cannot be saved
      */
-    private static void addTask(List<Task> tasks, Task task) {
+    private static void addTask(List<Task> tasks, Task task, Storage storage) throws KachowException {
         tasks.add(task);
+        storage.save(tasks);
         System.out.println(INDENT + "Ka-chow! A new racer joined the starting grid:");
         System.out.println(INDENT + "  " + task.getStatusText());
         String racerLabel = tasks.size() == 1 ? " racer" : " racers";
@@ -290,11 +304,14 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument text containing the task number
-     * @throws KachowException if the task number does not identify a task
+     * @param storage persistent task storage
+     * @throws KachowException if the task number is invalid or the updated task list cannot be saved
      */
-    private static void handleMarkCommand(List<Task> tasks, String argument) throws KachowException {
+    private static void handleMarkCommand(List<Task> tasks, String argument, Storage storage)
+            throws KachowException {
         Task task = getTask(tasks, argument, Command.MARK);
         task.markAsDone();
+        storage.save(tasks);
         printMarkedTask(task);
     }
 
@@ -303,11 +320,14 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument text containing the task number
-     * @throws KachowException if the task number does not identify a task
+     * @param storage persistent task storage
+     * @throws KachowException if the task number is invalid or the updated task list cannot be saved
      */
-    private static void handleUnmarkCommand(List<Task> tasks, String argument) throws KachowException {
+    private static void handleUnmarkCommand(List<Task> tasks, String argument, Storage storage)
+            throws KachowException {
         Task task = getTask(tasks, argument, Command.UNMARK);
         task.markAsNotDone();
+        storage.save(tasks);
         printUnmarkedTask(task);
     }
 
@@ -316,11 +336,14 @@ public class Kachow {
      *
      * @param tasks tasks currently stored in memory
      * @param argument text containing the task number
-     * @throws KachowException if the task number does not identify a task
+     * @param storage persistent task storage
+     * @throws KachowException if the task number is invalid or the updated task list cannot be saved
      */
-    private static void handleDeleteCommand(List<Task> tasks, String argument) throws KachowException {
+    private static void handleDeleteCommand(List<Task> tasks, String argument, Storage storage)
+            throws KachowException {
         Task task = getTask(tasks, argument, Command.DELETE);
         tasks.remove(task);
+        storage.save(tasks);
         System.out.println(INDENT + "Ka-chow! This racer has left the track:");
         System.out.println(INDENT + "  " + task.getStatusText());
         String racerLabel = tasks.size() == 1 ? " racer" : " racers";
