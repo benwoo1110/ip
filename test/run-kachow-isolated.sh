@@ -10,4 +10,4 @@ else
 fi
 
 cd "$test_directory" || exit 1
-exec java -cp "$classes" Kachow
+exec java -cp "$classes" com.benthecat.kachow.Kachow

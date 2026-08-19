@@ -1,6 +1,10 @@
+package com.benthecat.kachow.task;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.benthecat.kachow.exception.KachowException;
 
 /**
  * Owns the application's in-memory task collection and all operations on that collection.

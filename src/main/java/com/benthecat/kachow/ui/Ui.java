@@ -1,6 +1,13 @@
+package com.benthecat.kachow.ui;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
+
+import com.benthecat.kachow.exception.KachowException;
+import com.benthecat.kachow.parser.DateTimeParser;
+import com.benthecat.kachow.task.Task;
+import com.benthecat.kachow.task.TaskList;
 
 /**
  * Handles all console input and user-facing output for Kachow.

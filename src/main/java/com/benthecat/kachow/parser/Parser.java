@@ -1,5 +1,13 @@
+package com.benthecat.kachow.parser;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+
+import com.benthecat.kachow.exception.KachowException;
+import com.benthecat.kachow.task.Deadline;
+import com.benthecat.kachow.task.Event;
+import com.benthecat.kachow.task.Task;
+import com.benthecat.kachow.task.Todo;
 
 /**
  * Converts raw user input into validated commands that the application can execute.

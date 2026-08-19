@@ -1,4 +1,13 @@
+package com.benthecat.kachow;
+
 import java.nio.file.Path;
+
+import com.benthecat.kachow.exception.KachowException;
+import com.benthecat.kachow.parser.Parser;
+import com.benthecat.kachow.storage.Storage;
+import com.benthecat.kachow.task.Task;
+import com.benthecat.kachow.task.TaskList;
+import com.benthecat.kachow.ui.Ui;
 
 /**
  * Coordinates Kachow's UI, command parsing, task list, and persistent storage.

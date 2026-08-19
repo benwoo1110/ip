@@ -1,3 +1,7 @@
+package com.benthecat.kachow.parser;
+
+import com.benthecat.kachow.exception.KachowException;
+
 /**
  * Identifies every command accepted by Kachow and associates it with its user-facing keyword.
  */

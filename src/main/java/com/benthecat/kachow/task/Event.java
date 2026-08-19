@@ -1,5 +1,9 @@
+package com.benthecat.kachow.task;
+
 import java.time.LocalDate;
 import java.util.Objects;
+
+import com.benthecat.kachow.parser.DateTimeParser;
 
 /**
  * Represents a task that takes place between specified start and end times.

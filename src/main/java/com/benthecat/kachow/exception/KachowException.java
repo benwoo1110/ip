@@ -1,3 +1,5 @@
+package com.benthecat.kachow.exception;
+
 /**
  * Represents an invalid command or command argument supplied to Kachow.
  */

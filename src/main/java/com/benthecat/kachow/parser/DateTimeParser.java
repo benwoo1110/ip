@@ -1,3 +1,5 @@
+package com.benthecat.kachow.parser;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
