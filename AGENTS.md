@@ -43,6 +43,6 @@ Show the resulting console input/output record in the handoff. If a test fails, 
 
 ## Git
 
+Before proposing or creating any commit message or branch, invoke the project-specific `$seedu-git-standard` skill. All future commits in this project must follow that skill's SE-EDU subject and body conventions, and all future branch names must follow its branch-naming conventions.
 Use lightweight tags unless the user requests an annotated tag.
-When proposing or creating a commit message, include enough detail to explain the rationale for the change.
 Do not commit or push unless explicitly asked.
