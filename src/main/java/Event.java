@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 import java.util.Objects;
 
 /**
@@ -54,6 +55,11 @@ public class Event extends Task {
      */
     public DateTimeParser.ParsedDateTime getTo() {
         return to;
+    }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return !date.isBefore(from.date()) && !date.isAfter(to.date());
     }
 
     @Override

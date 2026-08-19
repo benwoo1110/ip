@@ -83,9 +83,14 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 All output produced by Kachow is indented by four spaces to distinguish it from
 the user's input. Add tasks with `todo DESCRIPTION`, `deadline DESCRIPTION /by
 DATE_OR_TIME`, or `event DESCRIPTION /from START /to END`. Deadline and event
-dates accept `yyyy-MM-dd`, `yyyy/M/d`, or `d/M/yyyy`; add a time as `HHmm`, `HH:mm`, or an
+dates accept `yyyy-MM-dd`, `yyyy/M/d`, `d/M/yyyy`, or padded US-style
+`MM/dd/yyyy`; add a time as `HHmm`, `HH:mm`, or an
 AM/PM time such as `6pm` or `6 PM`. A time-only event end uses the event's start date and must not be
 earlier than its start; use a full end date for an overnight event.
+Use `on DATE` to list deadlines due and events occurring on a date. The command
+retains the original task numbers, making its results usable with `mark`,
+`unmark`, and `delete`. To preserve `2/12/2019` as 2 December, ambiguous US
+dates must be zero-padded, for example `12/02/2019` for December 2.
 Tasks are loaded from
 `./data/kachow.txt` when Kachow starts and are saved there automatically after
 every add, mark, unmark, or delete command. Kachow creates the `data` directory

@@ -203,16 +203,16 @@ bye
     Now you've got 8 racers ready to roll.
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop! That deadline date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, or d/M/yyyy, optionally followed by HHmm, HH:mm, or an AM/PM time.
+    Pit stop! That deadline date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm, or an AM/PM time.
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop! That deadline date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, or d/M/yyyy, optionally followed by HHmm, HH:mm, or an AM/PM time.
+    Pit stop! That deadline date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm, or an AM/PM time.
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop! That event start date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, or d/M/yyyy, optionally followed by HHmm, HH:mm, or an AM/PM time.
+    Pit stop! That event start date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm, or an AM/PM time.
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop! That event end date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, or d/M/yyyy, optionally followed by HHmm, HH:mm, or an AM/PM time.
+    Pit stop! That event end date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm, or an AM/PM time.
     ____________________________________________________________
     ____________________________________________________________
     Pit stop! That event ends before it starts. Use a full /to date for an overnight event.
@@ -227,6 +227,97 @@ bye
     6.[D][ ] spaced input (by: Jan 01 2024, 6:00 PM)
     7.[E][ ] sprint planning (from: Dec 03 2019, 9:00 AM to: Dec 03 2019, 10:30 AM)
     8.[E][ ] overnight (from: Jan 02 2024, 11:00 PM to: Jan 03 2024, 1:00 AM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-13 Find deadlines and events by date
+
+### Aim
+
+Verify that `on DATE` keeps original task numbers, excludes todos, matches deadlines by due date, matches every date spanned by an event, supports padded US dates, and validates its argument.
+
+### Command
+
+```json
+["test/run-kachow-isolated.sh"]
+```
+
+### Inputs
+
+```text
+todo wash car
+deadline return book /by 2/12/2019 1800
+deadline submit report /by 12/03/2019 0900
+event conference /from 2019/12/03 2300 /to 2019/12/04 0100
+on 2019-12-02
+on 12/03/2019
+on 12/04/2019
+on 2019-12-05
+on
+on 2019-12-03 0900
+on tomorrow
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] wash car
+    Now you've got 1 racer ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [D][ ] return book (by: Dec 02 2019, 6:00 PM)
+    Now you've got 2 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [D][ ] submit report (by: Dec 03 2019, 9:00 AM)
+    Now you've got 3 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [E][ ] conference (from: Dec 03 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+    Now you've got 4 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the deadlines and events on Dec 02 2019:
+    2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the deadlines and events on Dec 03 2019:
+    3.[D][ ] submit report (by: Dec 03 2019, 9:00 AM)
+    4.[E][ ] conference (from: Dec 03 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the deadlines and events on Dec 04 2019:
+    4.[E][ ] conference (from: Dec 03 2019, 11:00 PM to: Dec 04 2019, 1:00 AM)
+    ____________________________________________________________
+    ____________________________________________________________
+    No deadlines or events are scheduled for Dec 05 2019.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Tell me which race date to check. Use: on DATE
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! The on command needs a date without a time. Use: on DATE
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That date is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US).
     ____________________________________________________________
     ____________________________________________________________
     Race complete! Catch you on the next lap. Ka-chow!
@@ -361,7 +452,7 @@ bye
     Pit stop! That event is missing its /to finish line. Use: event DESCRIPTION /from START /to END
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, mark, unmark, delete, or bye.
+    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, on, mark, unmark, delete, or bye.
     ____________________________________________________________
     ____________________________________________________________
     Race complete! Catch you on the next lap. Ka-chow!

@@ -1,3 +1,5 @@
+import java.time.LocalDate;
+
 /**
  * Represents a task with a description and completion status.
  */
@@ -57,6 +59,15 @@ public abstract class Task {
     public boolean isDone() {
         return isDone;
     }
+
+    /**
+     * Reports whether this task has a deadline or event occurrence on the given date.
+     * Tasks without date parameters do not occur on any calendar date.
+     *
+     * @param date calendar date to check
+     * @return {@code true} when this task occurs on the date
+     */
+    public abstract boolean occursOn(LocalDate date);
 
     /**
      * Returns the task description prefixed with its completion icon.

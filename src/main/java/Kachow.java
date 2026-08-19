@@ -1,4 +1,5 @@
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
@@ -11,9 +12,12 @@ public class Kachow {
     private static final String DIVIDER = "____________________________________________________________";
     private static final String DEADLINE_USAGE = "deadline DESCRIPTION /by DATE_OR_TIME";
     private static final String EVENT_USAGE = "event DESCRIPTION /from START /to END";
+    private static final String ON_USAGE = "on DATE";
+    private static final String DATE_FORMATS_TEXT =
+            "yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US)";
+    private static final String DATE_FORMAT_GUIDANCE = "Use " + DATE_FORMATS_TEXT + ".";
     private static final String DATE_TIME_FORMAT_GUIDANCE =
-            "Use yyyy-MM-dd, yyyy/M/d, or d/M/yyyy, optionally followed by HHmm, HH:mm, "
-                    + "or an AM/PM time.";
+            "Use " + DATE_FORMATS_TEXT + ", optionally followed by HHmm, HH:mm, or an AM/PM time.";
     private static final Path DATA_FILE = Path.of("./data/kachow.txt");
 
     /**
@@ -67,6 +71,7 @@ public class Kachow {
                     break commandLoop;
                 }
                 case LIST -> handleListCommand(tasks, argument);
+                case ON -> handleOnCommand(tasks, argument);
                 case MARK -> handleMarkCommand(tasks, argument, storage);
                 case UNMARK -> handleUnmarkCommand(tasks, argument, storage);
                 case DELETE -> handleDeleteCommand(tasks, argument, storage);
@@ -114,6 +119,48 @@ public class Kachow {
         System.out.println(INDENT + "Rev up! Here are the tasks in today's race:");
         for (int i = 0; i < tasks.size(); i++) {
             System.out.println(INDENT + (i + 1) + "." + tasks.get(i).getStatusText());
+        }
+    }
+
+    /**
+     * Lists deadlines due and events occurring on a user-supplied date.
+     * Original task numbers are retained so the displayed tasks can be used with other commands.
+     *
+     * @param tasks tasks currently stored in memory
+     * @param argument date to query in any supported date format
+     * @throws KachowException if the date is missing, invalid, or includes a time
+     */
+    private static void handleOnCommand(List<Task> tasks, String argument) throws KachowException {
+        if (argument.isEmpty()) {
+            throw new KachowException("Tell me which race date to check. Use: " + ON_USAGE);
+        }
+
+        DateTimeParser.ParsedDateTime parsedDate;
+        try {
+            parsedDate = DateTimeParser.parse(argument);
+        } catch (DateTimeParseException exception) {
+            throw new KachowException("That date is invalid. " + DATE_FORMAT_GUIDANCE, exception);
+        }
+        if (parsedDate.time().isPresent()) {
+            throw new KachowException("The on command needs a date without a time. Use: " + ON_USAGE);
+        }
+
+        LocalDate date = parsedDate.date();
+        boolean foundTask = false;
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).occursOn(date)) {
+                if (!foundTask) {
+                    System.out.println(
+                            INDENT + "Rev up! Here are the deadlines and events on "
+                                    + DateTimeParser.format(date) + ":");
+                }
+                System.out.println(INDENT + (i + 1) + "." + tasks.get(i).getStatusText());
+                foundTask = true;
+            }
+        }
+        if (!foundTask) {
+            System.out.println(
+                    INDENT + "No deadlines or events are scheduled for " + DateTimeParser.format(date) + ".");
         }
     }
 

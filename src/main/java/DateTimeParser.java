@@ -9,11 +9,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Parses, displays, and serializes the date/time values used by task commands.
  */
 public final class DateTimeParser {
+    private static final DateTimeFormatter US_DATE_FORMAT = strictFormatter("M/d/uuuu");
+    private static final Pattern PADDED_US_DATE_PATTERN = Pattern.compile("\\d{2}/\\d{2}/\\d{4}");
     private static final List<DateTimeFormatter> DATE_FORMATS = List.of(
             DateTimeFormatter.ISO_LOCAL_DATE.withResolverStyle(ResolverStyle.STRICT),
             strictFormatter("uuuu/M/d"),
@@ -104,6 +107,16 @@ public final class DateTimeParser {
     }
 
     /**
+     * Formats a date for task-list display.
+     *
+     * @param date date to display
+     * @return date formatted as {@code MMM dd yyyy}
+     */
+    public static String format(LocalDate date) {
+        return format(new ParsedDateTime(date));
+    }
+
+    /**
      * Formats a parsed value in a stable ISO representation for persistence.
      *
      * @param value date/time value to serialize
@@ -124,12 +137,24 @@ public final class DateTimeParser {
     }
 
     private static LocalDate parseDate(String text) {
+        if (PADDED_US_DATE_PATTERN.matcher(text).matches()) {
+            try {
+                return LocalDate.parse(text, US_DATE_FORMAT);
+            } catch (DateTimeParseException ignored) {
+                // A padded day-first date can still be valid when its first field exceeds 12.
+            }
+        }
         for (DateTimeFormatter formatter : DATE_FORMATS) {
             try {
                 return LocalDate.parse(text, formatter);
             } catch (DateTimeParseException ignored) {
                 // Try the next supported date format.
             }
+        }
+        try {
+            return LocalDate.parse(text, US_DATE_FORMAT);
+        } catch (DateTimeParseException ignored) {
+            // Report one consistent parse failure below.
         }
         throw new DateTimeParseException("Unsupported date format", text, 0);
     }
