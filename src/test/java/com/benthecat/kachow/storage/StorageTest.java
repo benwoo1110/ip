@@ -31,6 +31,7 @@ class StorageTest {
     @TempDir
     Path tempDirectory;
 
+    /** Verifies that a missing data file is treated as an empty task list. */
     @Test
     void load_missingFile_returnsEmptyList() throws KachowException {
         Storage storage = new Storage(tempDirectory.resolve("data/kachow.txt"));
@@ -38,6 +39,7 @@ class StorageTest {
         assertTrue(storage.load().isEmpty());
     }
 
+    /** Verifies round-trip persistence of task types, order, values, and completion state. */
     @Test
     void saveAndLoad_allTaskTypes_preserveOrderValuesAndCompletion() throws KachowException, IOException {
         Path dataFile = tempDirectory.resolve("data/kachow.txt");
@@ -71,6 +73,7 @@ class StorageTest {
                         loaded.get(2).getStatusText()));
     }
 
+    /** Verifies that blank records are ignored without affecting surrounding task data. */
     @Test
     void load_blankLines_ignoresThemAndKeepsPhysicalLineNumbers() throws IOException, KachowException {
         Path dataFile = tempDirectory.resolve("kachow.txt");
@@ -83,6 +86,7 @@ class StorageTest {
                 () -> assertEquals("[T][X] read book", loaded.getFirst().getStatusText()));
     }
 
+    /** Verifies that a stored event with a reversed range reports its physical line. */
     @Test
     void load_invalidEventRange_throwsLineSpecificError() throws IOException {
         Path dataFile = tempDirectory.resolve("kachow.txt");
@@ -96,6 +100,7 @@ class StorageTest {
         assertEquals("Task data on line 1 of " + dataFile + " is invalid.", exception.getMessage());
     }
 
+    /** Verifies line-specific errors for invalid completion fields and record lengths. */
     @Test
     void load_malformedStatusAndFieldCount_throwLineSpecificErrors() throws IOException {
         Path invalidStatusFile = tempDirectory.resolve("invalid-status.txt");

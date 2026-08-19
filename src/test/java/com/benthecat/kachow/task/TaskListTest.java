@@ -19,6 +19,7 @@ import com.benthecat.kachow.exception.KachowException;
  * Tests task state changes, deletion, renumbering, and date-based lookup.
  */
 class TaskListTest {
+    /** Verifies that marking and unmarking changes only the selected task. */
     @Test
     void markAndUnmark_validTaskNumber_updateOnlySelectedTask() throws KachowException {
         Todo first = new Todo("read book");
@@ -40,6 +41,7 @@ class TaskListTest {
                 () -> assertFalse(second.isDone()));
     }
 
+    /** Verifies deletion at both ends while preserving the remaining task's state. */
     @Test
     void delete_firstAndLastTasks_renumbersWithoutChangingRemainingState() throws KachowException {
         Todo first = new Todo("pole position");
@@ -56,6 +58,7 @@ class TaskListTest {
                 () -> assertTrue(tasks.asList().getFirst().isDone()));
     }
 
+    /** Verifies that an out-of-range deletion fails without mutating the list. */
     @Test
     void delete_outOfRangeTask_throwsWithoutChangingList() {
         Todo task = new Todo("tire change", true);
@@ -70,6 +73,7 @@ class TaskListTest {
                 () -> assertTrue(task.isDone()));
     }
 
+    /** Verifies date lookup, spanning events, original numbering, and todo exclusion. */
     @Test
     void findOn_deadlinesAndSpanningEvents_keepOriginalTaskNumbersAndExcludeTodos() {
         Todo todo = new Todo("wash car");
@@ -95,6 +99,7 @@ class TaskListTest {
                 () -> assertTrue(tasks.findOn(LocalDate.of(2019, 12, 5)).isEmpty()));
     }
 
+    /** Verifies that callers cannot mutate the task collection through its snapshot. */
     @Test
     void asList_returnedSnapshotCannotMutateTaskCollection() {
         TaskList tasks = new TaskList();

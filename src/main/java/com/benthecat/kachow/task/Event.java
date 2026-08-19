@@ -61,11 +61,13 @@ public class Event extends Task {
         return to;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean occursOn(LocalDate date) {
         return !date.isBefore(from.date()) && !date.isAfter(to.date());
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getStatusText() {
         return "[E]" + super.getStatusText()

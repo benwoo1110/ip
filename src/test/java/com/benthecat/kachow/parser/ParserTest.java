@@ -24,6 +24,7 @@ import com.benthecat.kachow.task.Todo;
 class ParserTest {
     private final Parser parser = new Parser();
 
+    /** Verifies command parsing with surrounding whitespace, tabs, and a trimmed argument. */
     @Test
     void parse_whitespaceAroundCommand_returnsKeywordAndTrimmedArgument() throws KachowException {
         Parser.ParsedCommand parsed = parser.parse("  deadline\t return book /by 2019-12-02  ");
@@ -33,6 +34,7 @@ class ParserTest {
                 () -> assertEquals("return book /by 2019-12-02", parsed.argument()));
     }
 
+    /** Verifies that each task-creation command produces the correct task values. */
     @Test
     void parseTask_allTaskCommands_returnCorrectTaskTypesAndValues() throws KachowException {
         Task todo = parseTask("todo read book");
@@ -50,6 +52,7 @@ class ParserTest {
                                 + " to: Dec 03 2019, 10:30 AM)", event.getStatusText()));
     }
 
+    /** Verifies that an event with explicit start and end dates can span midnight. */
     @Test
     void parseTask_explicitOvernightEvent_preservesBothDates() throws KachowException {
         Event event = assertInstanceOf(Event.class,
@@ -62,6 +65,7 @@ class ParserTest {
                         event.getTo().toLocalDateTime()));
     }
 
+    /** Verifies corrective guidance for empty and unsupported command keywords. */
     @Test
     void parse_emptyOrUnknownCommand_throwsSpecificGuidance() {
         KachowException empty = assertThrows(KachowException.class, () -> parser.parse("   "));
@@ -77,6 +81,7 @@ class ParserTest {
                         unknown.getMessage()));
     }
 
+    /** Verifies command-specific guidance when a no-argument command has extra text. */
     @Test
     void requireNoArgument_extraArgument_throwsCommandSpecificGuidance() throws KachowException {
         Parser.ParsedCommand list = parser.parse("list turbo");
@@ -87,6 +92,7 @@ class ParserTest {
         assertEquals("The list command has extra cargo. Use: list", exception.getMessage());
     }
 
+    /** Verifies guidance for missing, misplaced, or repeated task syntax markers. */
     @Test
     void parseTask_malformedComponents_throwSpecificGuidance() {
         List<InvalidInput> testCases = List.of(
@@ -119,6 +125,7 @@ class ParserTest {
         assertAll(testCases.stream().map(this::invalidTaskAssertion));
     }
 
+    /** Verifies guidance for invalid date/time values and reversed event ranges. */
     @Test
     void parseTask_invalidDateTimesAndRange_throwParameterSpecificGuidance() {
         List<InvalidInput> testCases = List.of(
@@ -140,6 +147,7 @@ class ParserTest {
         assertAll(testCases.stream().map(this::invalidTaskAssertion));
     }
 
+    /** Verifies parsing and validation of positive one-based task numbers. */
     @Test
     void parseTaskNumber_validAndInvalidArguments_followOneBasedRules() throws KachowException {
         assertEquals(2, parser.parseTaskNumber(parser.parse("delete 2")));
@@ -150,6 +158,7 @@ class ParserTest {
                         () -> parser.parseTaskNumber(parser.parse(command)))));
     }
 
+    /** Verifies that the on command accepts valid dates and rejects missing or timed values. */
     @Test
     void parseDate_validDateAndInvalidArguments_followOnCommandRules() throws KachowException {
         assertEquals(LocalDate.of(2019, 12, 3), parser.parseDate(parser.parse("on 12/03/2019")));
@@ -159,10 +168,23 @@ class ParserTest {
                 assertThrows(KachowException.class, () -> parser.parseDate(parser.parse(command)))));
     }
 
+    /**
+     * Parses a complete task command for use by parser tests.
+     *
+     * @param input complete command text
+     * @return task produced by the parser
+     * @throws KachowException if the command or task details are invalid
+     */
     private Task parseTask(String input) throws KachowException {
         return parser.parseTask(parser.parse(input));
     }
 
+    /**
+     * Builds an assertion that checks the exact guidance for one malformed task command.
+     *
+     * @param testCase malformed input and its expected message
+     * @return executable assertion suitable for {@link org.junit.jupiter.api.Assertions#assertAll}
+     */
     private Executable invalidTaskAssertion(InvalidInput testCase) {
         return () -> {
             KachowException exception = assertThrows(KachowException.class,

@@ -25,11 +25,13 @@ public class Todo extends Task {
         super(description, isDone);
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean occursOn(LocalDate date) {
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getStatusText() {
         return "[T]" + super.getStatusText();
