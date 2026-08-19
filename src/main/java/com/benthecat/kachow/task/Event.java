@@ -9,16 +9,16 @@ import com.benthecat.kachow.parser.DateTimeParser;
  * Represents a task that takes place between specified start and end times.
  */
 public class Event extends Task {
-    private final DateTimeParser.ParsedDateTime from;
-    private final DateTimeParser.ParsedDateTime to;
+    private final DateTimeParser.ParsedDateTime startDateTime;
+    private final DateTimeParser.ParsedDateTime endDateTime;
 
     /**
      * Creates an incomplete event task.
      *
-     * @param description text describing the event
-     * @param from parsed date and optional time at which the event starts
-     * @param to parsed date and optional time at which the event ends
-     * @throws IllegalArgumentException if the event ends before it starts
+     * @param description Text describing the event.
+     * @param from Parsed date and optional time at which the event starts.
+     * @param to Parsed date and optional time at which the event ends.
+     * @throws IllegalArgumentException If the event ends before it starts.
      */
     public Event(String description, DateTimeParser.ParsedDateTime from, DateTimeParser.ParsedDateTime to) {
         this(description, from, to, false);
@@ -27,17 +27,17 @@ public class Event extends Task {
     /**
      * Creates an event with a restored completion status.
      *
-     * @param description text describing the event
-     * @param from parsed date and optional time at which the event starts
-     * @param to parsed date and optional time at which the event ends
-     * @param isDone whether the event has been completed
-     * @throws IllegalArgumentException if the event ends before it starts
+     * @param description Text describing the event.
+     * @param from Parsed date and optional time at which the event starts.
+     * @param to Parsed date and optional time at which the event ends.
+     * @param isDone Whether the event has been completed.
+     * @throws IllegalArgumentException If the event ends before it starts.
      */
     public Event(String description, DateTimeParser.ParsedDateTime from, DateTimeParser.ParsedDateTime to,
             boolean isDone) {
         super(description, isDone);
-        this.from = Objects.requireNonNull(from);
-        this.to = Objects.requireNonNull(to);
+        this.startDateTime = Objects.requireNonNull(from);
+        this.endDateTime = Objects.requireNonNull(to);
         if (to.toLocalDateTime().isBefore(from.toLocalDateTime())) {
             throw new IllegalArgumentException("An event cannot end before it starts.");
         }
@@ -46,31 +46,32 @@ public class Event extends Task {
     /**
      * Returns the event's parsed start without display formatting.
      *
-     * @return parsed event start
+     * @return Parsed event start.
      */
     public DateTimeParser.ParsedDateTime getFrom() {
-        return from;
+        return startDateTime;
     }
 
     /**
      * Returns the event's parsed end without display formatting.
      *
-     * @return parsed event end
+     * @return Parsed event end.
      */
     public DateTimeParser.ParsedDateTime getTo() {
-        return to;
+        return endDateTime;
     }
 
     /** {@inheritDoc} */
     @Override
     public boolean occursOn(LocalDate date) {
-        return !date.isBefore(from.date()) && !date.isAfter(to.date());
+        return !date.isBefore(startDateTime.date()) && !date.isAfter(endDateTime.date());
     }
 
     /** {@inheritDoc} */
     @Override
     public String getStatusText() {
         return "[E]" + super.getStatusText()
-                + " (from: " + DateTimeParser.format(from) + " to: " + DateTimeParser.format(to) + ")";
+                + " (from: " + DateTimeParser.format(startDateTime)
+                + " to: " + DateTimeParser.format(endDateTime) + ")";
     }
 }

@@ -122,7 +122,7 @@ class ParserTest {
                         "That event has extra route markers."
                                 + " Use one /from and one /to: event DESCRIPTION /from START /to END"));
 
-        assertAll(testCases.stream().map(this::invalidTaskAssertion));
+        assertAll(testCases.stream().map(this::createInvalidTaskAssertion));
     }
 
     /** Verifies guidance for invalid date/time values and reversed event ranges. */
@@ -144,7 +144,7 @@ class ParserTest {
                 new InvalidInput("event backwards /from 2024-01-02 1800 /to 1700",
                         "That event ends before it starts. Use a full /to date for an overnight event."));
 
-        assertAll(testCases.stream().map(this::invalidTaskAssertion));
+        assertAll(testCases.stream().map(this::createInvalidTaskAssertion));
     }
 
     /** Verifies parsing and validation of positive one-based task numbers. */
@@ -185,7 +185,7 @@ class ParserTest {
      * @param testCase malformed input and its expected message
      * @return executable assertion suitable for {@link org.junit.jupiter.api.Assertions#assertAll}
      */
-    private Executable invalidTaskAssertion(InvalidInput testCase) {
+    private Executable createInvalidTaskAssertion(InvalidInput testCase) {
         return () -> {
             KachowException exception = assertThrows(KachowException.class,
                     () -> parseTask(testCase.input()));

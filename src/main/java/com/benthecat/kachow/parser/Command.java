@@ -25,7 +25,7 @@ public enum Command {
     /**
      * Returns the user-facing keyword for this command.
      *
-     * @return command keyword
+     * @return Command keyword.
      */
     public String getKeyword() {
         return keyword;
@@ -34,9 +34,9 @@ public enum Command {
     /**
      * Converts a user-entered keyword into its corresponding command.
      *
-     * @param keyword command keyword entered by the user
-     * @return matching command
-     * @throws KachowException if the keyword does not identify a supported command
+     * @param keyword Command keyword entered by the user.
+     * @return Matching command.
+     * @throws KachowException If the keyword does not identify a supported command.
      */
     public static Command fromKeyword(String keyword) throws KachowException {
         for (Command command : values()) {
@@ -51,7 +51,7 @@ public enum Command {
     /**
      * Formats all supported command keywords as a readable list in enum declaration order.
      *
-     * @return supported keywords separated by commas and {@code or} before the final keyword
+     * @return Supported keywords separated by commas and {@code or} before the final keyword.
      */
     private static String getSupportedKeywordsText() {
         Command[] commands = values();

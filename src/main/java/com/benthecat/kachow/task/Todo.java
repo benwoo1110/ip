@@ -9,7 +9,7 @@ public class Todo extends Task {
     /**
      * Creates an incomplete todo task.
      *
-     * @param description text describing the task
+     * @param description Text describing the task.
      */
     public Todo(String description) {
         super(description);
@@ -18,8 +18,8 @@ public class Todo extends Task {
     /**
      * Creates a todo task with a restored completion status.
      *
-     * @param description text describing the task
-     * @param isDone whether the task has been completed
+     * @param description Text describing the task.
+     * @param isDone Whether the task has been completed.
      */
     public Todo(String description, boolean isDone) {
         super(description, isDone);

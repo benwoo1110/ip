@@ -26,7 +26,7 @@ public class Storage {
     /**
      * Creates storage backed by the given data file.
      *
-     * @param dataFile path to the task data file
+     * @param dataFile Path to the task data file.
      */
     public Storage(Path dataFile) {
         this.dataFile = dataFile;
@@ -35,8 +35,8 @@ public class Storage {
     /**
      * Loads every task from disk. A missing file represents a new user with an empty task list.
      *
-     * @return tasks stored in the data file, in their saved order
-     * @throws KachowException if the file exists but cannot be read or contains invalid task data
+     * @return Tasks stored in the data file, in their saved order.
+     * @throws KachowException If the file exists but cannot be read or contains invalid task data.
      */
     public List<Task> load() throws KachowException {
         if (!Files.exists(dataFile)) {
@@ -60,8 +60,8 @@ public class Storage {
     /**
      * Saves the complete task list, creating the data directory when it does not exist yet.
      *
-     * @param tasks tasks to persist
-     * @throws KachowException if the task data cannot be written
+     * @param tasks Tasks to persist.
+     * @throws KachowException If the task data cannot be written.
      */
     public void save(List<Task> tasks) throws KachowException {
         try {
@@ -83,15 +83,15 @@ public class Storage {
     /**
      * Converts one saved line into its corresponding task subtype.
      *
-     * @param line saved task record
-     * @param lineNumber one-based line number used in validation messages
-     * @return restored task
-     * @throws KachowException if the line does not follow the storage format
+     * @param line Saved task record.
+     * @param lineNumber One-based line number used in validation messages.
+     * @return Restored task.
+     * @throws KachowException If the line does not follow the storage format.
      */
     private Task parseTask(String line, int lineNumber) throws KachowException {
         String[] fields = line.split(" \\| ", -1);
         if (fields.length < 3) {
-            throw invalidData(lineNumber);
+            throw createInvalidDataException(lineNumber);
         }
 
         boolean isDone;
@@ -100,7 +100,7 @@ public class Storage {
         } else if (fields[1].equals("0")) {
             isDone = false;
         } else {
-            throw invalidData(lineNumber);
+            throw createInvalidDataException(lineNumber);
         }
 
         return switch (fields[0]) {
@@ -116,15 +116,15 @@ public class Storage {
             requireFieldCount(fields, 5, lineNumber);
             yield parseEvent(fields[2], fields[3], fields[4], isDone, lineNumber);
         }
-        default -> throw invalidData(lineNumber);
+        default -> throw createInvalidDataException(lineNumber);
         };
     }
 
     /**
      * Converts a task into one line of the storage format.
      *
-     * @param task task to convert
-     * @return serialized task record
+     * @param task Task to convert.
+     * @return Serialized task record.
      */
     private String formatTask(Task task) {
         String status = task.isDone() ? "1" : "0";
@@ -157,7 +157,7 @@ public class Storage {
                     parseDateTime(to, lineNumber),
                     isDone);
         } catch (IllegalArgumentException exception) {
-            throw invalidData(lineNumber);
+            throw createInvalidDataException(lineNumber);
         }
     }
 
@@ -168,7 +168,7 @@ public class Storage {
         try {
             return DateTimeParser.parse(value);
         } catch (DateTimeParseException exception) {
-            throw invalidData(lineNumber);
+            throw createInvalidDataException(lineNumber);
         }
     }
 
@@ -177,14 +177,14 @@ public class Storage {
      */
     private void requireFieldCount(String[] fields, int expectedCount, int lineNumber) throws KachowException {
         if (fields.length != expectedCount) {
-            throw invalidData(lineNumber);
+            throw createInvalidDataException(lineNumber);
         }
     }
 
     /**
      * Creates a consistent exception for malformed saved data.
      */
-    private KachowException invalidData(int lineNumber) {
+    private KachowException createInvalidDataException(int lineNumber) {
         return new KachowException("Task data on line " + lineNumber + " of " + dataFile + " is invalid.");
     }
 }

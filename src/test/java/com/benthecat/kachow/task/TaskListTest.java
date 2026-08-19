@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.benthecat.kachow.exception.KachowException;
+import com.benthecat.kachow.parser.DateTimeParser;
 
 /**
  * Tests task state changes, deletion, renumbering, and date-based lookup.
@@ -53,9 +54,9 @@ class TaskListTest {
         assertSame(third, tasks.delete(2));
 
         assertAll(
-                () -> assertEquals(1, tasks.size()),
-                () -> assertSame(second, tasks.asList().getFirst()),
-                () -> assertTrue(tasks.asList().getFirst().isDone()));
+                () -> assertEquals(1, tasks.getSize()),
+                () -> assertSame(second, tasks.getTasks().getFirst()),
+                () -> assertTrue(tasks.getTasks().getFirst().isDone()));
     }
 
     /** Verifies that an out-of-range deletion fails without mutating the list. */
@@ -69,7 +70,7 @@ class TaskListTest {
         assertAll(
                 () -> assertEquals("Racer 2 isn't on the grid. Use list to check the task numbers.",
                         exception.getMessage()),
-                () -> assertEquals(List.of(task), tasks.asList()),
+                () -> assertEquals(List.of(task), tasks.getTasks()),
                 () -> assertTrue(task.isDone()));
     }
 
@@ -80,9 +81,9 @@ class TaskListTest {
         Deadline deadline = new Deadline("submit report", LocalDateTime.of(2019, 12, 3, 9, 0));
         Event event = new Event(
                 "conference",
-                new com.benthecat.kachow.parser.DateTimeParser.ParsedDateTime(
+                new DateTimeParser.ParsedDateTime(
                         LocalDateTime.of(2019, 12, 3, 23, 0)),
-                new com.benthecat.kachow.parser.DateTimeParser.ParsedDateTime(
+                new DateTimeParser.ParsedDateTime(
                         LocalDateTime.of(2019, 12, 4, 1, 0)));
         TaskList tasks = new TaskList(List.of(todo, deadline, event));
 
@@ -101,13 +102,13 @@ class TaskListTest {
 
     /** Verifies that callers cannot mutate the task collection through its snapshot. */
     @Test
-    void asList_returnedSnapshotCannotMutateTaskCollection() {
+    void getTasks_returnedSnapshotCannotMutateTaskCollection() {
         TaskList tasks = new TaskList();
         tasks.add(new Todo("read book"));
 
-        List<Task> snapshot = tasks.asList();
+        List<Task> snapshot = tasks.getTasks();
 
         assertThrows(UnsupportedOperationException.class, () -> snapshot.add(new Todo("write book")));
-        assertEquals(1, tasks.size());
+        assertEquals(1, tasks.getSize());
     }
 }
