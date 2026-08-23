@@ -1,13 +1,16 @@
 package com.benthecat.kachow.ui.printer;
 
+/**
+ * Buffers UI messages and writes them to the console.
+ */
 public class ConsolePrinter implements Printer {
-    private static final Integer UI_INDENT = 4;
+    private static final int UI_INDENT = 4;
 
     private final StringBuilder data = new StringBuilder();
 
     @Override
     public void addData(String message) {
-        data.append(message.indent(UI_INDENT)).append("\n");
+        data.append(message.indent(UI_INDENT));
     }
 
     @Override

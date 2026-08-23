@@ -14,7 +14,6 @@ import com.benthecat.kachow.ui.printer.Printer;
  * Handles all console input and user-facing output for Kachow.
  */
 public class Ui {
-    private static final Integer UI_INDENT = 4;
     private static final String UI_DIVIDER = "____________________________________________________________";
     private static final String UI_BANNER = " _  __          _                    \n"
             + "| |/ /__ _  ___| |__   _____      __\n"
@@ -33,7 +32,7 @@ public class Ui {
 
     /** Displays the startup banner and greeting. */
     public void showWelcome() {
-        showLine(UI_BANNER.indent(UI_INDENT));
+        showLine(UI_BANNER);
         showLine("Ka-chow! I'm Kachow, the fastest chatbot on the track.");
         showLine("What can I do for you before the next lap?");
     }

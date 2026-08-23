@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.benthecat.kachow.ui.printer.ConsolePrinter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +18,7 @@ import com.benthecat.kachow.task.Deadline;
 import com.benthecat.kachow.task.Event;
 import com.benthecat.kachow.task.TaskList;
 import com.benthecat.kachow.task.Todo;
+import com.benthecat.kachow.ui.printer.ConsolePrinter;
 
 /**
  * Tests the complete console fragments used to list tasks and lookup matches.
@@ -130,6 +130,7 @@ class UiTest {
     }
 
     private String getCapturedOutput() {
+        userInterface.outputData();
         return capturedOutputStream.toString(StandardCharsets.UTF_8);
     }
 

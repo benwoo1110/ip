@@ -3,7 +3,9 @@
 ## Test setup
 
 - Runtime: Java 25.
-- Compile before testing with `javac -d _temp/ui-test-classes $(find src/main/java -name '*.java' -print)`.
+- Compile the console application before testing with `javac -d _temp/ui-test-console-classes $(find src/main/java
+  -name '*.java' ! -path '*/ui/fx/*' ! -name 'FxMain.java' ! -name 'Launcher.java' ! -name 'FxPrinter.java'
+  -print)`. This deliberately excludes all JavaFX components from the console UI test classpath.
 - Make the test launcher executable with `chmod +x test/run-kachow-isolated.sh`.
 - Run every case from the repository root in a fresh JVM. The launcher uses a fresh working directory for each case, so generated task data cannot leak between cases. A case may instead name a read-only fixture directory when it needs predefined stored data.
 - Compare combined console output exactly after normalizing CRLF line endings to LF.
