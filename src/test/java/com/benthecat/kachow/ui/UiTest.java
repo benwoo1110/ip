@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.benthecat.kachow.ui.printer.ConsolePrinter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class UiTest {
     void redirectStandardOutput() {
         originalOutputStream = System.out;
         System.setOut(new PrintStream(capturedOutputStream, true, StandardCharsets.UTF_8));
-        userInterface = new Ui();
+        userInterface = new Ui(new ConsolePrinter());
     }
 
     /** Restores standard output after each UI test. */

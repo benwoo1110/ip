@@ -1,5 +1,6 @@
 package com.benthecat.kachow;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 import com.benthecat.kachow.exception.KachowException;
@@ -7,7 +8,20 @@ import com.benthecat.kachow.parser.Parser;
 import com.benthecat.kachow.storage.Storage;
 import com.benthecat.kachow.task.Task;
 import com.benthecat.kachow.task.TaskList;
+import com.benthecat.kachow.ui.fx.DialogBox;
 import com.benthecat.kachow.ui.Ui;
+import com.benthecat.kachow.ui.fx.MainWindow;
+import com.benthecat.kachow.ui.printer.FxPrinter;
+import com.benthecat.kachow.ui.printer.Printer;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 /**
  * Coordinates Kachow's UI, command parsing, task list, and persistent storage.
@@ -20,18 +34,21 @@ public class Kachow {
     private final Ui userInterface;
     private final Parser parser;
 
+    public Kachow(Printer printer) {
+        this(DATA_FILE, printer);
+    }
+
     /**
      * Creates a Kachow application backed by the given task data file.
      * Invalid stored data is reported and replaced with an empty in-memory task list so the UI can still run.
      *
      * @param filePath Path to the task data file.
      */
-    public Kachow(String filePath) {
-        userInterface = new Ui();
+    public Kachow(String filePath, Printer printer) {
+        userInterface = new Ui(printer);
         parser = new Parser();
         storage = new Storage(Path.of(filePath));
 
-        userInterface.showWelcome();
         TaskList loadedTasks;
         try {
             loadedTasks = new TaskList(storage.load());
@@ -42,20 +59,22 @@ public class Kachow {
         tasks = loadedTasks;
     }
 
-    /** Processes commands until the user enters {@code bye} or standard input closes. */
-    public void run() {
-        while (userInterface.hasNextCommand()) {
-            userInterface.showDivider();
-            try {
-                Parser.ParsedCommand command = parser.parse(userInterface.readCommand());
-                if (!execute(command)) {
-                    return;
-                }
-            } catch (KachowException exception) {
-                userInterface.showError(exception.getMessage());
+    public void sendWelcomeMessage() {
+        userInterface.showWelcome();
+        userInterface.outputData();
+    }
+
+    public void handleUserInput(String input) {
+        try {
+            Parser.ParsedCommand command = parser.parse(input);
+            if (!execute(command)) {
+                // end the application
+                return;
             }
-            userInterface.showDivider();
+        } catch (KachowException exception) {
+            userInterface.showError(exception.getMessage());
         }
+        userInterface.outputData();
     }
 
     /**
@@ -113,10 +132,5 @@ public class Kachow {
             yield true;
         }
         };
-    }
-
-    /** Starts Kachow using its default data file. */
-    public static void main(String[] args) {
-        new Kachow(DATA_FILE).run();
     }
 }
