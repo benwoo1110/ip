@@ -132,51 +132,51 @@ public class Kachow {
      */
     private boolean execute(Parser.ParsedCommand parsedCommand) throws KachowException {
         return switch (parsedCommand.command()) {
-        case BYE -> {
-            parser.requireNoArgument(parsedCommand);
-            userInterface.showGoodbye();
-            yield false;
-        }
-        case LIST -> {
-            parser.requireNoArgument(parsedCommand);
-            userInterface.showTaskList(tasks);
-            yield true;
-        }
-        case FIND -> {
-            String keyword = parser.parseSearchKeyword(parsedCommand);
-            userInterface.showSearchResults(keyword, tasks.findByDescription(keyword));
-            yield true;
-        }
-        case TODO, DEADLINE, EVENT -> {
-            Task task = parser.parseTask(parsedCommand);
-            tasks.add(task);
-            storage.save(tasks.getTasks());
-            userInterface.showTaskAdded(task, tasks.getSize());
-            yield true;
-        }
-        case ON -> {
-            var date = parser.parseDate(parsedCommand);
-            userInterface.showTasksOn(date, tasks.findOn(date));
-            yield true;
-        }
-        case MARK -> {
-            Task task = tasks.mark(parser.parseTaskNumber(parsedCommand));
-            storage.save(tasks.getTasks());
-            userInterface.showTaskMarked(task);
-            yield true;
-        }
-        case UNMARK -> {
-            Task task = tasks.unmark(parser.parseTaskNumber(parsedCommand));
-            storage.save(tasks.getTasks());
-            userInterface.showTaskUnmarked(task);
-            yield true;
-        }
-        case DELETE -> {
-            Task task = tasks.delete(parser.parseTaskNumber(parsedCommand));
-            storage.save(tasks.getTasks());
-            userInterface.showTaskDeleted(task, tasks.getSize());
-            yield true;
-        }
+            case BYE -> {
+                parser.requireNoArgument(parsedCommand);
+                userInterface.showGoodbye();
+                yield false;
+            }
+            case LIST -> {
+                parser.requireNoArgument(parsedCommand);
+                userInterface.showTaskList(tasks);
+                yield true;
+            }
+            case FIND -> {
+                String keyword = parser.parseSearchKeyword(parsedCommand);
+                userInterface.showSearchResults(keyword, tasks.findByDescription(keyword));
+                yield true;
+            }
+            case TODO, DEADLINE, EVENT -> {
+                Task task = parser.parseTask(parsedCommand);
+                tasks.add(task);
+                storage.save(tasks.getTasks());
+                userInterface.showTaskAdded(task, tasks.getSize());
+                yield true;
+            }
+            case ON -> {
+                var date = parser.parseDate(parsedCommand);
+                userInterface.showTasksOn(date, tasks.findOn(date));
+                yield true;
+            }
+            case MARK -> {
+                Task task = tasks.mark(parser.parseTaskNumber(parsedCommand));
+                storage.save(tasks.getTasks());
+                userInterface.showTaskMarked(task);
+                yield true;
+            }
+            case UNMARK -> {
+                Task task = tasks.unmark(parser.parseTaskNumber(parsedCommand));
+                storage.save(tasks.getTasks());
+                userInterface.showTaskUnmarked(task);
+                yield true;
+            }
+            case DELETE -> {
+                Task task = tasks.delete(parser.parseTaskNumber(parsedCommand));
+                storage.save(tasks.getTasks());
+                userInterface.showTaskDeleted(task, tasks.getSize());
+                yield true;
+            }
         };
     }
 }

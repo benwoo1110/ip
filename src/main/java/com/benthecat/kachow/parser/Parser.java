@@ -72,11 +72,11 @@ public class Parser {
      */
     public Task parseTask(ParsedCommand parsedCommand) throws KachowException {
         return switch (parsedCommand.command()) {
-        case TODO -> parseTodo(parsedCommand.argument());
-        case DEADLINE -> parseDeadline(parsedCommand.argument());
-        case EVENT -> parseEvent(parsedCommand.argument());
-        default -> throw new IllegalArgumentException(
-                "Command does not create a task: " + parsedCommand.command());
+            case TODO -> parseTodo(parsedCommand.argument());
+            case DEADLINE -> parseDeadline(parsedCommand.argument());
+            case EVENT -> parseEvent(parsedCommand.argument());
+            default -> throw new IllegalArgumentException(
+                    "Command does not create a task: " + parsedCommand.command());
         };
     }
 

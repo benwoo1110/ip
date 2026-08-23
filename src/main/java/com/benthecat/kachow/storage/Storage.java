@@ -104,19 +104,19 @@ public class Storage {
         }
 
         return switch (fields[0]) {
-        case "T" -> {
-            requireFieldCount(fields, 3, lineNumber);
-            yield new Todo(fields[2], isDone);
-        }
-        case "D" -> {
-            requireFieldCount(fields, 4, lineNumber);
-            yield parseDeadline(fields[2], fields[3], isDone, lineNumber);
-        }
-        case "E" -> {
-            requireFieldCount(fields, 5, lineNumber);
-            yield parseEvent(fields[2], fields[3], fields[4], isDone, lineNumber);
-        }
-        default -> throw createInvalidDataException(lineNumber);
+            case "T" -> {
+                requireFieldCount(fields, 3, lineNumber);
+                yield new Todo(fields[2], isDone);
+            }
+            case "D" -> {
+                requireFieldCount(fields, 4, lineNumber);
+                yield parseDeadline(fields[2], fields[3], isDone, lineNumber);
+            }
+            case "E" -> {
+                requireFieldCount(fields, 5, lineNumber);
+                yield parseEvent(fields[2], fields[3], fields[4], isDone, lineNumber);
+            }
+            default -> throw createInvalidDataException(lineNumber);
         };
     }
 
@@ -130,13 +130,11 @@ public class Storage {
         String status = task.isDone() ? "1" : "0";
         return switch (task) {
             case Todo todo -> String.join(FIELD_SEPARATOR, "T", status, task.getDescription());
-            case Deadline deadline ->
-                    String.join(FIELD_SEPARATOR, "D", status, task.getDescription(),
-                            DateTimeParser.formatForStorage(deadline.getByValue()));
-            case Event event -> String.join(
-                    FIELD_SEPARATOR, "E", status, task.getDescription(),
-                    DateTimeParser.formatForStorage(event.getFrom()),
-                    DateTimeParser.formatForStorage(event.getTo()));
+            case Deadline deadline -> String.join(FIELD_SEPARATOR, "D", status, task.getDescription(),
+                DateTimeParser.formatForStorage(deadline.getByValue()));
+            case Event event -> String.join(FIELD_SEPARATOR, "E", status, task.getDescription(),
+                DateTimeParser.formatForStorage(event.getFrom()),
+                DateTimeParser.formatForStorage(event.getTo()));
             default -> throw new IllegalArgumentException("Unsupported task type: " + task.getClass().getName());
         };
     }

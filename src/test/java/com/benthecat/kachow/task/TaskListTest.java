@@ -1,6 +1,5 @@
 package com.benthecat.kachow.task;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -29,17 +28,15 @@ class TaskListTest {
 
         Task marked = tasks.mark(2);
 
-        assertAll(
-                () -> assertSame(second, marked),
-                () -> assertFalse(first.isDone()),
-                () -> assertTrue(second.isDone()));
+        assertSame(second, marked);
+        assertFalse(first.isDone());
+        assertTrue(second.isDone());
 
         Task unmarked = tasks.unmark(2);
 
-        assertAll(
-                () -> assertSame(second, unmarked),
-                () -> assertFalse(first.isDone()),
-                () -> assertFalse(second.isDone()));
+        assertSame(second, unmarked);
+        assertFalse(first.isDone());
+        assertFalse(second.isDone());
     }
 
     /** Verifies deletion at both ends while preserving the remaining task's state. */
@@ -53,10 +50,9 @@ class TaskListTest {
         assertSame(first, tasks.delete(1));
         assertSame(third, tasks.delete(2));
 
-        assertAll(
-                () -> assertEquals(1, tasks.getSize()),
-                () -> assertSame(second, tasks.getTasks().getFirst()),
-                () -> assertTrue(tasks.getTasks().getFirst().isDone()));
+        assertEquals(1, tasks.getSize());
+        assertSame(second, tasks.getTasks().getFirst());
+        assertTrue(tasks.getTasks().getFirst().isDone());
     }
 
     /** Verifies that an out-of-range deletion fails without mutating the list. */
@@ -67,11 +63,9 @@ class TaskListTest {
 
         KachowException exception = assertThrows(KachowException.class, () -> tasks.delete(2));
 
-        assertAll(
-                () -> assertEquals("Racer 2 isn't on the grid. Use list to check the task numbers.",
-                        exception.getMessage()),
-                () -> assertEquals(List.of(task), tasks.getTasks()),
-                () -> assertTrue(task.isDone()));
+        assertEquals("Racer 2 isn't on the grid. Use list to check the task numbers.", exception.getMessage());
+        assertEquals(List.of(task), tasks.getTasks());
+        assertTrue(task.isDone());
     }
 
     /** Verifies date lookup, spanning events, original numbering, and todo exclusion. */
@@ -90,14 +84,10 @@ class TaskListTest {
         List<TaskList.NumberedTask> firstDay = tasks.findOn(LocalDate.of(2019, 12, 3));
         List<TaskList.NumberedTask> secondDay = tasks.findOn(LocalDate.of(2019, 12, 4));
 
-        assertAll(
-                () -> assertEquals(List.of(2, 3),
-                        firstDay.stream().map(TaskList.NumberedTask::number).toList()),
-                () -> assertEquals(List.of(deadline, event),
-                        firstDay.stream().map(TaskList.NumberedTask::task).toList()),
-                () -> assertEquals(List.of(3),
-                        secondDay.stream().map(TaskList.NumberedTask::number).toList()),
-                () -> assertTrue(tasks.findOn(LocalDate.of(2019, 12, 5)).isEmpty()));
+        assertEquals(List.of(2, 3), firstDay.stream().map(TaskList.NumberedTask::number).toList());
+        assertEquals(List.of(deadline, event), firstDay.stream().map(TaskList.NumberedTask::task).toList());
+        assertEquals(List.of(3), secondDay.stream().map(TaskList.NumberedTask::number).toList());
+        assertTrue(tasks.findOn(LocalDate.of(2019, 12, 5)).isEmpty());
     }
 
     @Test
@@ -115,12 +105,9 @@ class TaskListTest {
 
         List<TaskList.NumberedTask> matches = tasks.findByDescription("BOOK");
 
-        assertAll(
-                () -> assertEquals(List.of(1, 2, 3),
-                        matches.stream().map(TaskList.NumberedTask::number).toList()),
-                () -> assertEquals(List.of(first, second, third),
-                        matches.stream().map(TaskList.NumberedTask::task).toList()),
-                () -> assertTrue(tasks.findByDescription("race").isEmpty()));
+        assertEquals(List.of(1, 2, 3), matches.stream().map(TaskList.NumberedTask::number).toList());
+        assertEquals(List.of(first, second, third), matches.stream().map(TaskList.NumberedTask::task).toList());
+        assertTrue(tasks.findByDescription("race").isEmpty());
     }
 
     /** Verifies that callers cannot mutate the task collection through its snapshot. */

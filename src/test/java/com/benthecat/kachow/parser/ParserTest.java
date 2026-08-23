@@ -1,6 +1,5 @@
 package com.benthecat.kachow.parser;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
 import com.benthecat.kachow.exception.KachowException;
 import com.benthecat.kachow.task.Deadline;
@@ -29,9 +27,8 @@ class ParserTest {
     void parse_whitespaceAroundCommand_returnsKeywordAndTrimmedArgument() throws KachowException {
         Parser.ParsedCommand parsed = parser.parse("  deadline\t return book /by 2019-12-02  ");
 
-        assertAll(
-                () -> assertEquals(Command.DEADLINE, parsed.command()),
-                () -> assertEquals("return book /by 2019-12-02", parsed.argument()));
+        assertEquals(Command.DEADLINE, parsed.command());
+        assertEquals("return book /by 2019-12-02", parsed.argument());
     }
 
     /** Verifies that each task-creation command produces the correct task values. */
@@ -41,15 +38,13 @@ class ParserTest {
         Task deadline = parseTask("deadline return book /by 2/12/2019 1800");
         Task event = parseTask("event sprint planning /from 3/12/2019 0900 /to 10:30");
 
-        assertAll(
-                () -> assertInstanceOf(Todo.class, todo),
-                () -> assertEquals("[T][ ] read book", todo.getStatusText()),
-                () -> assertInstanceOf(Deadline.class, deadline),
-                () -> assertEquals("[D][ ] return book (by: Dec 02 2019, 6:00 PM)",
-                        deadline.getStatusText()),
-                () -> assertInstanceOf(Event.class, event),
-                () -> assertEquals("[E][ ] sprint planning (from: Dec 03 2019, 9:00 AM"
-                                + " to: Dec 03 2019, 10:30 AM)", event.getStatusText()));
+        assertInstanceOf(Todo.class, todo);
+        assertEquals("[T][ ] read book", todo.getStatusText());
+        assertInstanceOf(Deadline.class, deadline);
+        assertEquals("[D][ ] return book (by: Dec 02 2019, 6:00 PM)", deadline.getStatusText());
+        assertInstanceOf(Event.class, event);
+        assertEquals("[E][ ] sprint planning (from: Dec 03 2019, 9:00 AM"
+                + " to: Dec 03 2019, 10:30 AM)", event.getStatusText());
     }
 
     /** Verifies that an event with explicit start and end dates can span midnight. */
@@ -58,11 +53,8 @@ class ParserTest {
         Event event = assertInstanceOf(Event.class,
                 parseTask("event overnight /from 2024/01/02 2300 /to 2024/01/03 0100"));
 
-        assertAll(
-                () -> assertEquals(LocalDateTime.of(2024, 1, 2, 23, 0),
-                        event.getFrom().toLocalDateTime()),
-                () -> assertEquals(LocalDateTime.of(2024, 1, 3, 1, 0),
-                        event.getTo().toLocalDateTime()));
+        assertEquals(LocalDateTime.of(2024, 1, 2, 23, 0), event.getFrom().toLocalDateTime());
+        assertEquals(LocalDateTime.of(2024, 1, 3, 1, 0), event.getTo().toLocalDateTime());
     }
 
     /** Verifies corrective guidance for empty and unsupported command keywords. */
@@ -71,14 +63,10 @@ class ParserTest {
         KachowException empty = assertThrows(KachowException.class, () -> parser.parse("   "));
         KachowException unknown = assertThrows(KachowException.class, () -> parser.parse("dance"));
 
-        assertAll(
-                () -> assertEquals(
-                        "That command stalled on the starting line. Enter a command to keep racing.",
-                        empty.getMessage()),
-                () -> assertEquals(
-                        "That command took a wrong turn. Try todo, deadline, event, list, find, on, mark,"
-                                + " unmark, delete, or bye.",
-                        unknown.getMessage()));
+        assertEquals("That command stalled on the starting line. Enter a command to keep racing.",
+                empty.getMessage());
+        assertEquals("That command took a wrong turn. Try todo, deadline, event, list, find, on, mark,"
+                + " unmark, delete, or bye.", unknown.getMessage());
     }
 
     /** Verifies command-specific guidance when a no-argument command has extra text. */
@@ -86,8 +74,8 @@ class ParserTest {
     void requireNoArgument_extraArgument_throwsCommandSpecificGuidance() throws KachowException {
         Parser.ParsedCommand list = parser.parse("list turbo");
 
-        KachowException exception = assertThrows(KachowException.class,
-                () -> parser.requireNoArgument(list));
+        KachowException exception = assertThrows(KachowException.class, () ->
+                parser.requireNoArgument(list));
 
         assertEquals("The list command has extra cargo. Use: list", exception.getMessage());
     }
@@ -122,7 +110,7 @@ class ParserTest {
                         "That event has extra route markers."
                                 + " Use one /from and one /to: event DESCRIPTION /from START /to END"));
 
-        assertAll(testCases.stream().map(this::createInvalidTaskAssertion));
+        testCases.forEach(this::assertInvalidTask);
     }
 
     /** Verifies guidance for invalid date/time values and reversed event ranges. */
@@ -144,7 +132,7 @@ class ParserTest {
                 new InvalidInput("event backwards /from 2024-01-02 1800 /to 1700",
                         "That event ends before it starts. Use a full /to date for an overnight event."));
 
-        assertAll(testCases.stream().map(this::createInvalidTaskAssertion));
+        testCases.forEach(this::assertInvalidTask);
     }
 
     /** Verifies parsing and validation of positive one-based task numbers. */
@@ -153,9 +141,10 @@ class ParserTest {
         assertEquals(2, parser.parseTaskNumber(parser.parse("delete 2")));
 
         List<String> invalidCommands = List.of("delete", "delete zero", "delete -1", "delete 1 turbo");
-        assertAll(invalidCommands.stream().map(command -> () ->
-                assertThrows(KachowException.class,
-                        () -> parser.parseTaskNumber(parser.parse(command)))));
+        for (String command : invalidCommands) {
+            assertThrows(KachowException.class, () ->
+                    parser.parseTaskNumber(parser.parse(command)));
+        }
     }
 
     /** Verifies that the on command accepts valid dates and rejects missing or timed values. */
@@ -164,42 +153,40 @@ class ParserTest {
         assertEquals(LocalDate.of(2019, 12, 3), parser.parseDate(parser.parse("on 12/03/2019")));
 
         List<String> invalidCommands = List.of("on", "on 2019-12-03 0900", "on tomorrow");
-        assertAll(invalidCommands.stream().map(command -> () ->
-                assertThrows(KachowException.class, () -> parser.parseDate(parser.parse(command)))));
+        for (String command : invalidCommands) {
+            assertThrows(KachowException.class, () -> parser.parseDate(parser.parse(command)));
+        }
     }
 
     @Test
     void parseSearchKeyword_presentAndMissingArguments_followFindCommandRules() throws KachowException {
         assertEquals("return book", parser.parseSearchKeyword(parser.parse("find return book")));
 
-        KachowException exception = assertThrows(KachowException.class,
-                () -> parser.parseSearchKeyword(parser.parse("find")));
+        KachowException exception = assertThrows(KachowException.class, () ->
+                parser.parseSearchKeyword(parser.parse("find")));
         assertEquals("Tell me which racer to search for. Use: find KEYWORD", exception.getMessage());
     }
 
     /**
      * Parses a complete task command for use by parser tests.
      *
-     * @param input complete command text
-     * @return task produced by the parser
-     * @throws KachowException if the command or task details are invalid
+     * @param input Complete command text.
+     * @return Task produced by the parser.
+     * @throws KachowException If the command or task details are invalid.
      */
     private Task parseTask(String input) throws KachowException {
         return parser.parseTask(parser.parse(input));
     }
 
     /**
-     * Builds an assertion that checks the exact guidance for one malformed task command.
+     * Checks the exact guidance for one malformed task command.
      *
-     * @param testCase malformed input and its expected message
-     * @return executable assertion suitable for {@link org.junit.jupiter.api.Assertions#assertAll}
+     * @param testCase Malformed input and its expected message.
      */
-    private Executable createInvalidTaskAssertion(InvalidInput testCase) {
-        return () -> {
-            KachowException exception = assertThrows(KachowException.class,
-                    () -> parseTask(testCase.input()));
-            assertEquals(testCase.expectedMessage(), exception.getMessage());
-        };
+    private void assertInvalidTask(InvalidInput testCase) {
+        KachowException exception = assertThrows(KachowException.class, () ->
+                parseTask(testCase.input()));
+        assertEquals(testCase.expectedMessage(), exception.getMessage());
     }
 
     /** Associates malformed command input with the exact corrective guidance shown by the UI. */

@@ -1,6 +1,5 @@
 package com.benthecat.kachow.storage;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -54,23 +53,19 @@ class StorageTest {
         storage.save(List.of(todo, deadline, event));
         List<Task> loaded = storage.load();
 
-        assertAll(
-                () -> assertEquals(List.of(
-                        "T | 1 | read book",
-                        "D | 0 | return book | 2019-06-06",
-                        "E | 0 | project meeting | 2019-08-06T14:00 | 2019-08-06T16:00"),
-                        Files.readAllLines(dataFile, StandardCharsets.UTF_8)),
-                () -> assertEquals(3, loaded.size()),
-                () -> assertInstanceOf(Todo.class, loaded.get(0)),
-                () -> assertInstanceOf(Deadline.class, loaded.get(1)),
-                () -> assertInstanceOf(Event.class, loaded.get(2)),
-                () -> assertEquals("[T][X] read book", loaded.get(0).getStatusText()),
-                () -> assertEquals("[D][ ] return book (by: Jun 06 2019)",
-                        loaded.get(1).getStatusText()),
-                () -> assertEquals(
-                        "[E][ ] project meeting (from: Aug 06 2019, 2:00 PM"
-                                + " to: Aug 06 2019, 4:00 PM)",
-                        loaded.get(2).getStatusText()));
+        assertEquals(List.of(
+                "T | 1 | read book",
+                "D | 0 | return book | 2019-06-06",
+                "E | 0 | project meeting | 2019-08-06T14:00 | 2019-08-06T16:00"),
+                Files.readAllLines(dataFile, StandardCharsets.UTF_8));
+        assertEquals(3, loaded.size());
+        assertInstanceOf(Todo.class, loaded.get(0));
+        assertInstanceOf(Deadline.class, loaded.get(1));
+        assertInstanceOf(Event.class, loaded.get(2));
+        assertEquals("[T][X] read book", loaded.get(0).getStatusText());
+        assertEquals("[D][ ] return book (by: Jun 06 2019)", loaded.get(1).getStatusText());
+        assertEquals("[E][ ] project meeting (from: Aug 06 2019, 2:00 PM"
+                + " to: Aug 06 2019, 4:00 PM)", loaded.get(2).getStatusText());
     }
 
     /** Verifies that blank records are ignored without affecting surrounding task data. */
@@ -81,9 +76,8 @@ class StorageTest {
 
         List<Task> loaded = new Storage(dataFile).load();
 
-        assertAll(
-                () -> assertEquals(1, loaded.size()),
-                () -> assertEquals("[T][X] read book", loaded.getFirst().getStatusText()));
+        assertEquals(1, loaded.size());
+        assertEquals("[T][X] read book", loaded.getFirst().getStatusText());
     }
 
     /** Verifies that a stored event with a reversed range reports its physical line. */
@@ -94,8 +88,8 @@ class StorageTest {
                 "E | 0 | backwards | 2024-01-02T18:00 | 2024-01-02T17:00\n",
                 StandardCharsets.UTF_8);
 
-        KachowException exception = assertThrows(KachowException.class,
-                () -> new Storage(dataFile).load());
+        KachowException exception = assertThrows(KachowException.class, () ->
+                new Storage(dataFile).load());
 
         assertEquals("Task data on line 1 of " + dataFile + " is invalid.", exception.getMessage());
     }
@@ -108,15 +102,14 @@ class StorageTest {
         Files.writeString(invalidStatusFile, "T | X | read book\n", StandardCharsets.UTF_8);
         Files.writeString(invalidFieldsFile, "D | 0 | return book\n", StandardCharsets.UTF_8);
 
-        KachowException invalidStatus = assertThrows(KachowException.class,
-                () -> new Storage(invalidStatusFile).load());
-        KachowException invalidFields = assertThrows(KachowException.class,
-                () -> new Storage(invalidFieldsFile).load());
+        KachowException invalidStatus = assertThrows(KachowException.class, () ->
+                new Storage(invalidStatusFile).load());
+        KachowException invalidFields = assertThrows(KachowException.class, () ->
+                new Storage(invalidFieldsFile).load());
 
-        assertAll(
-                () -> assertEquals("Task data on line 1 of " + invalidStatusFile + " is invalid.",
-                        invalidStatus.getMessage()),
-                () -> assertEquals("Task data on line 1 of " + invalidFieldsFile + " is invalid.",
-                        invalidFields.getMessage()));
+        assertEquals("Task data on line 1 of " + invalidStatusFile + " is invalid.",
+                invalidStatus.getMessage());
+        assertEquals("Task data on line 1 of " + invalidFieldsFile + " is invalid.",
+                invalidFields.getMessage());
     }
 }
