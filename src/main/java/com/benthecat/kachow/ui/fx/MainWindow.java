@@ -2,6 +2,7 @@ package com.benthecat.kachow.ui.fx;
 
 import com.benthecat.kachow.Kachow;
 import com.benthecat.kachow.ui.printer.FxPrinter;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -24,6 +25,9 @@ public class MainWindow extends AnchorPane {
 
     private Kachow kachow;
 
+    /**
+     * Initializes the chatbot and keeps the latest dialog visible.
+     */
     @FXML
     public void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());

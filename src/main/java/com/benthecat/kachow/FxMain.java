@@ -1,14 +1,14 @@
 package com.benthecat.kachow;
 
-import com.benthecat.kachow.ui.fx.MainWindow;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
+/**
+ * Starts and configures the Kachow graphical interface.
+ */
 public class FxMain extends Application {
     @Override
     public void start(Stage stage) throws Exception {

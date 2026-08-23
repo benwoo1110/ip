@@ -1,5 +1,8 @@
 package com.benthecat.kachow.ui.fx;
 
+import java.io.IOException;
+import java.util.Objects;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,11 +13,10 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Font;
 
-import java.io.IOException;
-import java.util.Objects;
-
+/**
+ * Represents one user or Kachow message in the graphical interface.
+ */
 public class DialogBox extends HBox {
 
     private static final Image userImage = new Image(
