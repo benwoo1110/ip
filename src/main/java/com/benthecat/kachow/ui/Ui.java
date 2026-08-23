@@ -32,9 +32,10 @@ public class Ui {
 
     /** Displays the startup banner and greeting. */
     public void showWelcome() {
-        showLine(UI_BANNER);
-        showLine("Ka-chow! I'm Kachow, the fastest chatbot on the track.");
-        showLine("What can I do for you before the next lap?");
+        showLines(
+                UI_BANNER,
+                "Ka-chow! I'm Kachow, the fastest chatbot on the track.",
+                "What can I do for you before the next lap?");
     }
 
 
@@ -50,77 +51,81 @@ public class Ui {
 
     /** Displays the divider that begins or ends a regular command response. */
     public void showDivider() {
-        showLine(UI_DIVIDER);
+        showLines(UI_DIVIDER);
     }
 
     /** Displays the complete task list. */
     public void showTaskList(TaskList taskList) {
         if (taskList.isEmpty()) {
-            showLine("The starting grid is empty. Add a racer with todo, deadline, or event.");
+            showLines("The starting grid is empty. Add a racer with todo, deadline, or event.");
             return;
         }
-        showLine("Rev up! Here are the tasks in today's race:");
+        showLines("Rev up! Here are the tasks in today's race:");
         List<Task> tasks = taskList.getTasks();
         for (int i = 0; i < tasks.size(); i++) {
-            showLine((i + 1) + "." + tasks.get(i).getStatusText());
+            showLines((i + 1) + "." + tasks.get(i).getStatusText());
         }
     }
 
     /** Displays deadlines and events occurring on a particular date. */
     public void showTasksOn(LocalDate date, List<TaskList.NumberedTask> matchingTasks) {
         if (matchingTasks.isEmpty()) {
-            showLine("No deadlines or events are scheduled for " + DateTimeParser.format(date) + ".");
+            showLines("No deadlines or events are scheduled for " + DateTimeParser.format(date) + ".");
             return;
         }
-        showLine("Rev up! Here are the deadlines and events on " + DateTimeParser.format(date) + ":");
+        showLines("Rev up! Here are the deadlines and events on " + DateTimeParser.format(date) + ":");
         for (TaskList.NumberedTask numberedTask : matchingTasks) {
-            showLine(numberedTask.number() + "." + numberedTask.task().getStatusText());
+            showLines(numberedTask.number() + "." + numberedTask.task().getStatusText());
         }
     }
 
     /** Displays tasks whose descriptions match a search keyword. */
     public void showSearchResults(String keyword, List<TaskList.NumberedTask> matchingTasks) {
         if (matchingTasks.isEmpty()) {
-            showLine("No racers matched \"" + keyword + "\". Try another search lap.");
+            showLines("No racers matched \"" + keyword + "\". Try another search lap.");
             return;
         }
-        showLine("Ka-chow! These racers matched your search:");
+        showLines("Ka-chow! These racers matched your search:");
         for (TaskList.NumberedTask numberedTask : matchingTasks) {
-            showLine(numberedTask.number() + "." + numberedTask.task().getStatusText());
+            showLines(numberedTask.number() + "." + numberedTask.task().getStatusText());
         }
     }
 
     /** Displays confirmation after a task is added. */
     public void showTaskAdded(Task task, int taskCount) {
-        showLine("Ka-chow! A new racer joined the starting grid:");
-        showLine("  " + task.getStatusText());
         String racerLabel = taskCount == 1 ? " racer" : " racers";
-        showLine("Now you've got " + taskCount + racerLabel + " ready to roll.");
+        showLines(
+                "Ka-chow! A new racer joined the starting grid:",
+                "  " + task.getStatusText(),
+                "Now you've got " + taskCount + racerLabel + " ready to roll.");
     }
 
     /** Displays confirmation after a task is marked as complete. */
     public void showTaskMarked(Task task) {
-        showLine("Ka-chow! This task crossed the finish line:");
-        showLine("  " + task.getStatusText());
+        showLines(
+                "Ka-chow! This task crossed the finish line:",
+                "  " + task.getStatusText());
     }
 
     /** Displays confirmation after a task is marked as incomplete. */
     public void showTaskUnmarked(Task task) {
-        showLine("Back to the starting grid! This task is not done yet:");
-        showLine("  " + task.getStatusText());
+        showLines(
+                "Back to the starting grid! This task is not done yet:",
+                "  " + task.getStatusText());
     }
 
     /** Displays confirmation after a task is deleted. */
     public void showTaskDeleted(Task task, int taskCount) {
-        showLine("Ka-chow! This racer has left the track:");
-        showLine("  " + task.getStatusText());
         String racerLabel = taskCount == 1 ? " racer" : " racers";
-        showLine("Now you've got " + taskCount + racerLabel + " still in the race.");
+        showLines(
+                "Ka-chow! This racer has left the track:",
+                "  " + task.getStatusText(),
+                "Now you've got " + taskCount + racerLabel + " still in the race.");
     }
 
     /** Displays a validation or persistence error. */
     public void showError(String message) {
-        showLine("Pit stop! " + message);
+        showLines("Pit stop! " + message);
     }
 
     /** Displays a loading error while allowing the application to start with an empty list. */
@@ -130,7 +135,7 @@ public class Ui {
 
     /** Displays the farewell and its closing divider. */
     public void showGoodbye() {
-        showLine("Race complete! Catch you on the next lap. Ka-chow!");
+        showLines("Race complete! Catch you on the next lap. Ka-chow!");
         showDivider();
     }
 
@@ -138,8 +143,10 @@ public class Ui {
         printer.outputData();
     }
 
-    /** Prints one consistently indented UI line. */
-    private void showLine(String text) {
-        printer.addData(text);
+    /** Displays one or more UI lines with consistent formatting. */
+    private void showLines(String... lines) {
+        for (String line : lines) {
+            printer.addData(line);
+        }
     }
 }
