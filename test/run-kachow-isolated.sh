@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Run Kachow outside the repository so its persistent data cannot leak between UI cases.
-classes="$PWD/_temp/ui-test-classes"
+classes="$PWD/_temp/ui-test-console-classes"
 
 if [ "$#" -eq 1 ]; then
     test_directory="$PWD/$1"

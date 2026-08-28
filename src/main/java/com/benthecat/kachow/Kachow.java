@@ -8,6 +8,8 @@ import com.benthecat.kachow.storage.Storage;
 import com.benthecat.kachow.task.Task;
 import com.benthecat.kachow.task.TaskList;
 import com.benthecat.kachow.ui.Ui;
+import com.benthecat.kachow.ui.printer.ConsolePrinter;
+import com.benthecat.kachow.ui.printer.Printer;
 
 /**
  * Coordinates Kachow's UI, command parsing, task list, and persistent storage.
@@ -19,42 +21,105 @@ public class Kachow {
     private final TaskList tasks;
     private final Ui userInterface;
     private final Parser parser;
+    private final KachowException loadingException;
+
+    /**
+     * Creates a Kachow application backed by the default task data file.
+     *
+     * @param printer Destination for user-facing output.
+     */
+    public Kachow(Printer printer) {
+        this(DATA_FILE, printer);
+    }
 
     /**
      * Creates a Kachow application backed by the given task data file.
      * Invalid stored data is reported and replaced with an empty in-memory task list so the UI can still run.
      *
      * @param filePath Path to the task data file.
+     * @param printer Destination for user-facing output.
      */
-    public Kachow(String filePath) {
-        userInterface = new Ui();
+    public Kachow(String filePath, Printer printer) {
+        userInterface = new Ui(printer);
         parser = new Parser();
         storage = new Storage(Path.of(filePath));
 
-        userInterface.showWelcome();
         TaskList loadedTasks;
+        KachowException loadingError = null;
         try {
             loadedTasks = new TaskList(storage.load());
         } catch (KachowException exception) {
-            userInterface.showLoadingError(exception);
+            loadingError = exception;
             loadedTasks = new TaskList();
         }
         tasks = loadedTasks;
+        loadingException = loadingError;
     }
 
-    /** Processes commands until the user enters {@code bye} or standard input closes. */
+    /** Sends the welcome message and any error encountered while loading stored tasks. */
+    public void sendWelcomeMessage() {
+        userInterface.showWelcome();
+        showLoadingError();
+        userInterface.outputData();
+    }
+
+    /**
+     * Handles one command and sends its response to the configured printer.
+     *
+     * @param input Complete user command.
+     * @return {@code false} only when the command asks the application to exit.
+     */
+    public boolean handleUserInput(String input) {
+        boolean shouldContinue = processUserInput(input);
+        userInterface.outputData();
+        return shouldContinue;
+    }
+
+    /** Processes console commands until the user exits or standard input closes. */
     public void run() {
+        userInterface.showDivider();
+        userInterface.showWelcome();
+        userInterface.showDivider();
+        showLoadingError();
+        userInterface.outputData();
+
         while (userInterface.hasNextCommand()) {
             userInterface.showDivider();
-            try {
-                Parser.ParsedCommand command = parser.parse(userInterface.readCommand());
-                if (!execute(command)) {
-                    return;
-                }
-            } catch (KachowException exception) {
-                userInterface.showError(exception.getMessage());
+            boolean shouldContinue = processUserInput(userInterface.readCommand());
+            if (!shouldContinue) {
+                userInterface.outputData();
+                return;
             }
             userInterface.showDivider();
+            userInterface.outputData();
+        }
+    }
+
+    /** Starts the console interface using the default task data file. */
+    public static void main(String[] args) {
+        new Kachow(new ConsolePrinter()).run();
+    }
+
+    /**
+     * Processes one command without making assumptions about the output destination.
+     *
+     * @param input Complete user command.
+     * @return {@code false} only when the command asks the application to exit.
+     */
+    private boolean processUserInput(String input) {
+        try {
+            Parser.ParsedCommand command = parser.parse(input);
+            return execute(command);
+        } catch (KachowException exception) {
+            userInterface.showError(exception.getMessage());
+            return true;
+        }
+    }
+
+    /** Displays an error encountered while loading stored tasks, if any. */
+    private void showLoadingError() {
+        if (loadingException != null) {
+            userInterface.showLoadingError(loadingException);
         }
     }
 
@@ -113,10 +178,5 @@ public class Kachow {
             yield true;
         }
         };
-    }
-
-    /** Starts Kachow using its default data file. */
-    public static void main(String[] args) {
-        new Kachow(DATA_FILE).run();
     }
 }

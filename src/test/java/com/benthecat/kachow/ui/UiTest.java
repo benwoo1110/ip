@@ -18,6 +18,7 @@ import com.benthecat.kachow.task.Deadline;
 import com.benthecat.kachow.task.Event;
 import com.benthecat.kachow.task.TaskList;
 import com.benthecat.kachow.task.Todo;
+import com.benthecat.kachow.ui.printer.ConsolePrinter;
 
 /**
  * Tests the complete console fragments used to list tasks and lookup matches.
@@ -32,7 +33,7 @@ class UiTest {
     void redirectStandardOutput() {
         originalOutputStream = System.out;
         System.setOut(new PrintStream(capturedOutputStream, true, StandardCharsets.UTF_8));
-        userInterface = new Ui();
+        userInterface = new Ui(new ConsolePrinter());
     }
 
     /** Restores standard output after each UI test. */
@@ -129,6 +130,7 @@ class UiTest {
     }
 
     private String getCapturedOutput() {
+        userInterface.outputData();
         return capturedOutputStream.toString(StandardCharsets.UTF_8);
     }
 

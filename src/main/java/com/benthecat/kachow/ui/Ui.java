@@ -8,12 +8,12 @@ import com.benthecat.kachow.exception.KachowException;
 import com.benthecat.kachow.parser.DateTimeParser;
 import com.benthecat.kachow.task.Task;
 import com.benthecat.kachow.task.TaskList;
+import com.benthecat.kachow.ui.printer.Printer;
 
 /**
  * Handles all console input and user-facing output for Kachow.
  */
 public class Ui {
-    private static final String UI_INDENT = "    ";
     private static final String UI_DIVIDER = "____________________________________________________________";
     private static final String UI_BANNER = " _  __          _                    \n"
             + "| |/ /__ _  ___| |__   _____      __\n"
@@ -22,20 +22,21 @@ public class Ui {
             + "|_|\\_\\__,_|\\___|_| |_|\\___/ \\_/\\_/  \n";
 
     private final Scanner scanner;
+    private final Printer printer;
 
     /** Creates a UI that reads commands from standard input. */
-    public Ui() {
+    public Ui(Printer printer) {
+        this.printer = printer;
         scanner = new Scanner(System.in);
     }
 
     /** Displays the startup banner and greeting. */
     public void showWelcome() {
-        showDivider();
-        System.out.print(UI_BANNER.indent(UI_INDENT.length()));
+        showLine(UI_BANNER);
         showLine("Ka-chow! I'm Kachow, the fastest chatbot on the track.");
         showLine("What can I do for you before the next lap?");
-        showDivider();
     }
+
 
     /** Reports whether another console command is available. */
     public boolean hasNextCommand() {
@@ -133,8 +134,12 @@ public class Ui {
         showDivider();
     }
 
+    public void outputData() {
+        printer.outputData();
+    }
+
     /** Prints one consistently indented UI line. */
     private void showLine(String text) {
-        System.out.println(UI_INDENT + text);
+        printer.addData(text);
     }
 }
