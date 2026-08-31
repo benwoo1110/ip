@@ -10,7 +10,9 @@ public class ConsolePrinter implements Printer {
 
     @Override
     public void addData(String message) {
-        data.append(message.indent(UI_INDENT));
+        String indentedMessage = message.indent(UI_INDENT)
+                .replace("\n", System.lineSeparator());
+        data.append(indentedMessage);
     }
 
     @Override
