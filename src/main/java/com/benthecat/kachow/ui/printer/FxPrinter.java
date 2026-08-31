@@ -23,7 +23,7 @@ public class FxPrinter implements Printer {
 
     @Override
     public void outputData() {
-        dialogContainer.getChildren().add(DialogBox.getKachowDialog(data.toString()));
+        dialogContainer.getChildren().add(DialogBox.createKachowDialog(data.toString()));
         data.setLength(0);
     }
 }

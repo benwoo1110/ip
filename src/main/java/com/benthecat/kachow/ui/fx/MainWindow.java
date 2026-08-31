@@ -41,7 +41,7 @@ public class MainWindow extends AnchorPane {
      */
     @FXML
     private void handleUserInput() {
-        dialogContainer.getChildren().add(DialogBox.getUserDialog(userInput.getText()));
+        dialogContainer.getChildren().add(DialogBox.createUserDialog(userInput.getText()));
         kachow.handleUserInput(userInput.getText());
         userInput.clear();
     }
