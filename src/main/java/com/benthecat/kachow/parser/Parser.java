@@ -36,6 +36,8 @@ public class Parser {
      * @throws KachowException If the command keyword is empty or unsupported.
      */
     public ParsedCommand parse(String input) throws KachowException {
+        assert input != null : "User input must not be null";
+
         String commandText = input.strip();
         int separatorIndex = findFirstWhitespaceIndex(commandText);
         String keyword = separatorIndex == -1 ? commandText : commandText.substring(0, separatorIndex);
@@ -56,6 +58,9 @@ public class Parser {
      * @throws KachowException If an unexpected argument is present.
      */
     public void requireNoArgument(ParsedCommand parsedCommand) throws KachowException {
+        assert parsedCommand.command() == Command.BYE || parsedCommand.command() == Command.LIST
+                : "Only bye and list are argument-free commands";
+
         if (!parsedCommand.argument().isEmpty()) {
             Command command = parsedCommand.command();
             throw new KachowException(
@@ -71,6 +76,11 @@ public class Parser {
      * @throws KachowException If a required task component is missing or invalid.
      */
     public Task parseTask(ParsedCommand parsedCommand) throws KachowException {
+        assert parsedCommand.command() == Command.TODO
+                || parsedCommand.command() == Command.DEADLINE
+                || parsedCommand.command() == Command.EVENT
+                : "Only task-creation commands can be parsed as tasks";
+
         return switch (parsedCommand.command()) {
             case TODO -> parseTodo(parsedCommand.argument());
             case DEADLINE -> parseDeadline(parsedCommand.argument());
@@ -191,6 +201,8 @@ public class Parser {
      * @throws KachowException If the date is missing, invalid, or includes a time.
      */
     public LocalDate parseDate(ParsedCommand parsedCommand) throws KachowException {
+        assert parsedCommand.command() == Command.ON : "Only the on command has a date argument";
+
         String argument = parsedCommand.argument();
         if (argument.isEmpty()) {
             throw new KachowException("Tell me which race date to check. Use: " + USAGE_ON);
@@ -216,6 +228,8 @@ public class Parser {
      * @throws KachowException If the keyword is missing.
      */
     public String parseSearchKeyword(ParsedCommand parsedCommand) throws KachowException {
+        assert parsedCommand.command() == Command.FIND : "Only the find command has a search keyword";
+
         String keyword = parsedCommand.argument();
         if (keyword.isEmpty()) {
             throw new KachowException("Tell me which racer to search for. Use: " + USAGE_FIND);
@@ -231,6 +245,11 @@ public class Parser {
      * @throws KachowException If the task number is missing or malformed.
      */
     public int parseTaskNumber(ParsedCommand parsedCommand) throws KachowException {
+        assert parsedCommand.command() == Command.MARK
+                || parsedCommand.command() == Command.UNMARK
+                || parsedCommand.command() == Command.DELETE
+                : "Only task-list commands have a task number";
+
         String argument = parsedCommand.argument();
         Command action = parsedCommand.command();
         if (argument.isEmpty()) {

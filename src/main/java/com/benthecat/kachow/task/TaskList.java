@@ -24,11 +24,17 @@ public class TaskList {
      * @param tasks Tasks to place in the list.
      */
     public TaskList(List<Task> tasks) {
+        assert tasks != null : "Initial task collection must not be null";
+        assert tasks.stream().allMatch(task -> task != null)
+                : "Initial task collection must not contain null tasks";
+
         this.tasks = new ArrayList<>(tasks);
     }
 
     /** Adds a task to the end of the list. */
     public void add(Task task) {
+        assert task != null : "Added task must not be null";
+
         tasks.add(task);
     }
 
@@ -36,6 +42,7 @@ public class TaskList {
     public Task mark(int taskNumber) throws KachowException {
         Task task = get(taskNumber);
         task.markAsDone();
+        assert task.isDone() : "Marked task must be complete";
         return task;
     }
 
@@ -43,13 +50,16 @@ public class TaskList {
     public Task unmark(int taskNumber) throws KachowException {
         Task task = get(taskNumber);
         task.markAsNotDone();
+        assert !task.isDone() : "Unmarked task must be incomplete";
         return task;
     }
 
     /** Removes a numbered task and returns it. */
     public Task delete(int taskNumber) throws KachowException {
         Task task = get(taskNumber);
+        int previousSize = tasks.size();
         tasks.remove(taskNumber - 1);
+        assert tasks.size() == previousSize - 1 : "Deleting a task must reduce the list size by one";
         return task;
     }
 
@@ -104,6 +114,8 @@ public class TaskList {
 
     /** Gets a task after translating its user-facing number into a list index. */
     private Task get(int taskNumber) throws KachowException {
+        assert taskNumber > 0 : "Task numbers must be positive";
+
         if (taskNumber > tasks.size()) {
             throw new KachowException(
                     "Racer " + taskNumber + " isn't on the grid. Use list to check the task numbers.");
