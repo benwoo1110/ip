@@ -16,6 +16,6 @@ public class ConsolePrinter implements Printer {
     @Override
     public void outputData() {
         System.out.print(data);
-        data.setLength(0); // Clear the data after outputting
+        data.setLength(0);
     }
 }

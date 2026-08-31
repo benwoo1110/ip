@@ -19,44 +19,46 @@ import javafx.scene.layout.HBox;
  */
 public class DialogBox extends HBox {
 
-    private static final Image userImage = new Image(
+    private static final Image USER_IMAGE = new Image(
             Objects.requireNonNull(DialogBox.class.getResourceAsStream("/images/DaUser.png")));
-    private static final Image kachowsImage = new Image(
+    private static final Image KACHOW_IMAGE = new Image(
             Objects.requireNonNull(DialogBox.class.getResourceAsStream("/images/DaKachow.png")));
 
     @FXML
-    private Label dialog;
+    private Label dialogText;
     @FXML
     private ImageView displayPicture;
 
-    private DialogBox(String text, Image img) {
+    private DialogBox(String text, Image image) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/view/DialogBox.fxml"));
             fxmlLoader.setController(this);
             fxmlLoader.setRoot(this);
             fxmlLoader.load();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to load the dialog box layout.", exception);
         }
 
-        dialog.setText(text);
-        displayPicture.setImage(img);
+        dialogText.setText(text);
+        displayPicture.setImage(image);
     }
 
-    private DialogBox flip() {
+    private DialogBox formatAsKachowDialog() {
         this.setAlignment(Pos.TOP_LEFT);
-        ObservableList<Node> tmp = FXCollections.observableArrayList(this.getChildren());
-        FXCollections.reverse(tmp);
-        this.getChildren().setAll(tmp);
-        dialog.getStyleClass().add("reply-label");
+        ObservableList<Node> children = FXCollections.observableArrayList(this.getChildren());
+        FXCollections.reverse(children);
+        this.getChildren().setAll(children);
+        dialogText.getStyleClass().add("reply-label");
         return this;
     }
 
-    public static DialogBox getUserDialog(String s) {
-        return new DialogBox(s, userImage);
+    /** Creates a dialog containing a message from the user. */
+    public static DialogBox createUserDialog(String text) {
+        return new DialogBox(text, USER_IMAGE);
     }
 
-    public static DialogBox getKachowDialog(String s) {
-        return new DialogBox(s, kachowsImage).flip();
+    /** Creates a dialog containing a response from Kachow. */
+    public static DialogBox createKachowDialog(String text) {
+        return new DialogBox(text, KACHOW_IMAGE).formatAsKachowDialog();
     }
 }

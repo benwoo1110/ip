@@ -4,7 +4,6 @@ import com.benthecat.kachow.Kachow;
 import com.benthecat.kachow.ui.printer.FxPrinter;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
@@ -20,8 +19,6 @@ public class MainWindow extends AnchorPane {
     private VBox dialogContainer;
     @FXML
     private TextField userInput;
-    @FXML
-    private Button sendButton;
 
     private Kachow kachow;
 
@@ -41,7 +38,7 @@ public class MainWindow extends AnchorPane {
      */
     @FXML
     private void handleUserInput() {
-        dialogContainer.getChildren().add(DialogBox.getUserDialog(userInput.getText()));
+        dialogContainer.getChildren().add(DialogBox.createUserDialog(userInput.getText()));
         kachow.handleUserInput(userInput.getText());
         userInput.clear();
     }
