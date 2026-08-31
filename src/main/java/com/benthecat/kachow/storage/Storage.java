@@ -70,10 +70,9 @@ public class Storage {
                 Files.createDirectories(parent);
             }
 
-            List<String> lines = new ArrayList<>();
-            for (Task task : tasks) {
-                lines.add(formatTask(task));
-            }
+            List<String> lines = tasks.stream()
+                    .map(this::formatTask)
+                    .toList();
             Files.write(dataFile, lines, StandardCharsets.UTF_8);
         } catch (IOException exception) {
             throw new KachowException("I couldn't save task data to " + dataFile + ".", exception);
