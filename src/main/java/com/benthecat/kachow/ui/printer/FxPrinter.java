@@ -12,6 +12,11 @@ public class FxPrinter implements Printer {
     private final VBox dialogContainer;
     private final StringBuilder data = new StringBuilder();
 
+    /**
+     * Creates a printer that appends responses to the given dialog container.
+     *
+     * @param dialogContainer Container that displays Kachow's responses.
+     */
     public FxPrinter(VBox dialogContainer) {
         this.dialogContainer = dialogContainer;
     }

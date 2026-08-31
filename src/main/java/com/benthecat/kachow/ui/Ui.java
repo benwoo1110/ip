@@ -139,6 +139,7 @@ public class Ui {
         showDivider();
     }
 
+    /** Sends the accumulated response to the configured output destination. */
     public void outputData() {
         printer.outputData();
     }
