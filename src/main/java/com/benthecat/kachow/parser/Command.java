@@ -1,5 +1,7 @@
 package com.benthecat.kachow.parser;
 
+import java.util.Arrays;
+
 import com.benthecat.kachow.exception.KachowException;
 
 /**
@@ -40,13 +42,11 @@ public enum Command {
      * @throws KachowException If the keyword does not identify a supported command.
      */
     public static Command fromKeyword(String keyword) throws KachowException {
-        for (Command command : values()) {
-            if (command.keyword.equals(keyword)) {
-                return command;
-            }
-        }
-        throw new KachowException(
-                "That command took a wrong turn. Try " + getSupportedKeywordsText() + ".");
+        return Arrays.stream(values())
+                .filter(command -> command.keyword.equals(keyword))
+                .findFirst()
+                .orElseThrow(() -> new KachowException(
+                        "That command took a wrong turn. Try " + getSupportedKeywordsText() + "."));
     }
 
     /**
