@@ -2,6 +2,8 @@ package com.benthecat.kachow.parser;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.EnumMap;
+import java.util.Map;
 
 import com.benthecat.kachow.exception.KachowException;
 import com.benthecat.kachow.task.Deadline;
@@ -15,6 +17,7 @@ import com.benthecat.kachow.task.Todo;
 public class Parser {
     private static final String USAGE_DEADLINE = "deadline DESCRIPTION /by DATE_OR_TIME";
     private static final String USAGE_EVENT = "event DESCRIPTION /from START /to END";
+    private static final String USAGE_EDIT = "edit TASK_NUMBER FIELD VALUE [FIELD VALUE]...";
     private static final String USAGE_FIND = "find KEYWORD";
     private static final String USAGE_ON = "on DATE";
     private static final String DATE_FORMATS_TEXT =
@@ -258,9 +261,92 @@ public class Parser {
                             + ". Use: " + action.getKeyword() + " TASK_NUMBER");
         }
 
+        return parsePositiveTaskNumber(argument, action);
+    }
+
+    /**
+     * Parses the task number and replacement field/value pairs of an edit command.
+     *
+     * @param parsedCommand Edit command to parse.
+     * @return Validated edit request.
+     * @throws KachowException If the task number, a field, or a replacement value is missing or malformed.
+     */
+    public EditCommand parseEditCommand(ParsedCommand parsedCommand) throws KachowException {
+        assert parsedCommand.command() == Command.EDIT : "Only the edit command can be parsed as an edit";
+
+        String argument = parsedCommand.argument();
+        if (argument.isEmpty()) {
+            throw new KachowException("Tell me which racer to edit. Use: " + USAGE_EDIT);
+        }
+
+        int numberEndIndex = findFirstWhitespaceIndex(argument);
+        String taskNumberText = numberEndIndex == -1 ? argument : argument.substring(0, numberEndIndex);
+        int taskNumber = parsePositiveTaskNumber(taskNumberText, Command.EDIT);
+        if (numberEndIndex == -1) {
+            throw createMissingEditFieldException();
+        }
+
+        String fieldArguments = argument.substring(numberEndIndex).strip();
+        return new EditCommand(taskNumber, parseEditChanges(fieldArguments));
+    }
+
+    /**
+     * Creates an updated copy of a task according to one parsed edit request.
+     *
+     * @param task Existing task to update.
+     * @param editCommand Parsed edit request.
+     * @return Updated task with its unedited details and completion status preserved.
+     * @throws KachowException If the selected field does not apply or its new value is invalid.
+     */
+    public Task applyEdit(Task task, EditCommand editCommand) throws KachowException {
+        assert task != null : "Edited task must not be null";
+        assert editCommand != null : "Edit command must not be null";
+
+        String description = editCommand.changes()
+                .getOrDefault(EditField.DESCRIPTION, task.getDescription());
+        return switch (task) {
+            case Todo todo -> editTodo(todo, description, editCommand);
+            case Deadline deadline -> editDeadline(deadline, description, editCommand);
+            case Event event -> editEvent(event, description, editCommand);
+            default -> throw new IllegalArgumentException("Unsupported task type: " + task.getClass().getName());
+        };
+    }
+
+    /** Parses every field/value pair while rejecting duplicate or incomplete fields. */
+    private Map<EditField, String> parseEditChanges(String fieldArguments) throws KachowException {
+        Map<EditField, String> changes = new EnumMap<>(EditField.class);
+        int fieldIndex = 0;
+        while (fieldIndex < fieldArguments.length()) {
+            int fieldEndIndex = findFirstWhitespaceIndex(fieldArguments.substring(fieldIndex));
+            int absoluteFieldEndIndex = fieldEndIndex == -1
+                    ? fieldArguments.length()
+                    : fieldIndex + fieldEndIndex;
+            String fieldText = fieldArguments.substring(fieldIndex, absoluteFieldEndIndex);
+            EditField field = EditField.fromKeyword(fieldText);
+            if (changes.containsKey(field)) {
+                throw new KachowException(
+                        "That edit repeats " + field.getKeyword() + ". Specify each detail once.");
+            }
+
+            int valueStartIndex = skipWhitespace(fieldArguments, absoluteFieldEndIndex);
+            int nextFieldIndex = findNextEditFieldIndex(fieldArguments, valueStartIndex);
+            int valueEndIndex = nextFieldIndex == -1 ? fieldArguments.length() : nextFieldIndex;
+            String value = fieldArguments.substring(valueStartIndex, valueEndIndex).strip();
+            if (value.isEmpty()) {
+                throw new KachowException(
+                        "That " + field.getKeyword() + " detail needs a new value. Use: " + USAGE_EDIT);
+            }
+            changes.put(field, value);
+            fieldIndex = valueEndIndex;
+        }
+        return Map.copyOf(changes);
+    }
+
+    /** Parses a positive task number from a complete numeric token. */
+    private int parsePositiveTaskNumber(String taskNumberText, Command action) throws KachowException {
         int taskNumber;
         try {
-            taskNumber = Integer.parseInt(argument);
+            taskNumber = Integer.parseInt(taskNumberText);
         } catch (NumberFormatException exception) {
             throw createInvalidTaskNumberException(action, exception);
         }
@@ -268,6 +354,96 @@ public class Parser {
             throw createInvalidTaskNumberException(action, null);
         }
         return taskNumber;
+    }
+
+    /** Creates an edited todo after ensuring that every requested field is supported. */
+    private Task editTodo(Todo todo, String description, EditCommand editCommand) throws KachowException {
+        requireSupportedFields(editCommand, EditField.DESCRIPTION);
+        return new Todo(description, todo.isDone());
+    }
+
+    /** Creates an edited deadline after ensuring that every requested field is supported. */
+    private Task editDeadline(Deadline deadline, String description, EditCommand editCommand)
+            throws KachowException {
+        requireSupportedFields(editCommand, EditField.DESCRIPTION, EditField.BY);
+
+        DateTimeParser.ParsedDateTime by = deadline.getByValue();
+        if (editCommand.changes().containsKey(EditField.BY)) {
+            by = parseEditedDeadlineDateTime(editCommand.changes().get(EditField.BY), by.date());
+        }
+        return new Deadline(description, by, deadline.isDone());
+    }
+
+    /** Parses an edited deadline value, allowing a time that keeps the existing date. */
+    private DateTimeParser.ParsedDateTime parseEditedDeadlineDateTime(String value, LocalDate existingDate)
+            throws KachowException {
+        try {
+            return DateTimeParser.parse(value, existingDate);
+        } catch (DateTimeParseException exception) {
+            throw new KachowException(
+                    "That deadline date or time is invalid. " + DATE_TIME_FORMAT_GUIDANCE,
+                    exception);
+        }
+    }
+
+    /** Creates an edited event after parsing all requested values and validating the final range. */
+    private Task editEvent(Event event, String description, EditCommand editCommand) throws KachowException {
+        requireSupportedFields(editCommand, EditField.DESCRIPTION, EditField.FROM, EditField.TO);
+
+        DateTimeParser.ParsedDateTime from = event.getFrom();
+        if (editCommand.changes().containsKey(EditField.FROM)) {
+            from = parseEditedEventDateTime(
+                    editCommand.changes().get(EditField.FROM), event.getFrom().date(), "start");
+        }
+        DateTimeParser.ParsedDateTime to = event.getTo();
+        if (editCommand.changes().containsKey(EditField.TO)) {
+            to = parseEditedEventDateTime(
+                    editCommand.changes().get(EditField.TO), event.getTo().date(), "end");
+        }
+
+        try {
+            return new Event(description, from, to, event.isDone());
+        } catch (IllegalArgumentException exception) {
+            throw new KachowException(
+                    "That event ends before it starts. Use a full date when moving it across midnight.",
+                    exception);
+        }
+    }
+
+    /** Parses an edited event value, allowing a time that keeps the existing field's date. */
+    private DateTimeParser.ParsedDateTime parseEditedEventDateTime(String value, LocalDate existingDate,
+            String parameter) throws KachowException {
+        try {
+            return DateTimeParser.parse(value, existingDate);
+        } catch (DateTimeParseException exception) {
+            throw createInvalidEventDateTimeException(parameter, exception);
+        }
+    }
+
+    /** Rejects the first requested field that is unsupported by the selected task type. */
+    private void requireSupportedFields(EditCommand editCommand, EditField... supportedFields)
+            throws KachowException {
+        for (EditField field : EditField.values()) {
+            if (editCommand.changes().containsKey(field) && !isSupportedField(field, supportedFields)) {
+                throw new KachowException("This racer does not have a " + field.getKeyword() + " detail.");
+            }
+        }
+    }
+
+    /** Reports whether a field is in the selected task type's supported field list. */
+    private boolean isSupportedField(EditField field, EditField[] supportedFields) {
+        for (EditField supportedField : supportedFields) {
+            if (field == supportedField) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Creates guidance for an edit command that has no field. */
+    private KachowException createMissingEditFieldException() {
+        return new KachowException(
+                "Tell me what to change. Use /description, /by, /from, or /to: " + USAGE_EDIT);
     }
 
     /** Creates consistent guidance for malformed task numbers. */
@@ -294,6 +470,25 @@ public class Parser {
         return -1;
     }
 
+    /** Skips whitespace at and after an index. */
+    private int skipWhitespace(String text, int startIndex) {
+        int index = startIndex;
+        while (index < text.length() && Character.isWhitespace(text.charAt(index))) {
+            index++;
+        }
+        return index;
+    }
+
+    /** Finds the next slash-prefixed edit field that begins after whitespace. */
+    private int findNextEditFieldIndex(String text, int startIndex) {
+        for (int i = startIndex; i < text.length(); i++) {
+            if (text.charAt(i) == '/' && (i == 0 || Character.isWhitespace(text.charAt(i - 1)))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /** Locates a slash-prefixed syntax token when it appears as a complete word. */
     private int findToken(String text, String token, int startIndex) {
         int tokenIndex = text.indexOf(token, startIndex);
@@ -311,4 +506,42 @@ public class Parser {
 
     /** Holds a recognized command and the unprocessed text following its keyword. */
     public record ParsedCommand(Command command, String argument) { }
+
+    /** Holds a task number and every replacement field/value pair of an edit command. */
+    public record EditCommand(int taskNumber, Map<EditField, String> changes) {
+        /** Creates an edit command with an immutable snapshot of its changes. */
+        public EditCommand {
+            changes = Map.copyOf(changes);
+        }
+    }
+
+    /** Identifies a task detail that the edit command can replace. */
+    public enum EditField {
+        DESCRIPTION("/description"),
+        BY("/by"),
+        FROM("/from"),
+        TO("/to");
+
+        private final String keyword;
+
+        EditField(String keyword) {
+            this.keyword = keyword;
+        }
+
+        /** Returns the slash-prefixed keyword for this editable field. */
+        public String getKeyword() {
+            return keyword;
+        }
+
+        /** Converts a slash-prefixed field keyword into its corresponding editable field. */
+        private static EditField fromKeyword(String keyword) throws KachowException {
+            for (EditField field : values()) {
+                if (field.keyword.equals(keyword)) {
+                    return field;
+                }
+            }
+            throw new KachowException(
+                    "That detail cannot be edited. Use /description, /by, /from, or /to.");
+        }
+    }
 }

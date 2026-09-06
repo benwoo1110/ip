@@ -114,6 +114,13 @@ public class Ui {
                 "  " + task.getStatusText());
     }
 
+    /** Displays confirmation after one task detail is edited. */
+    public void showTaskEdited(Task task) {
+        showLines(
+                "Ka-chow! This racer's details are updated:",
+                "  " + task.getStatusText());
+    }
+
     /** Displays confirmation after a task is deleted. */
     public void showTaskDeleted(Task task, int taskCount) {
         String racerLabel = taskCount == 1 ? " racer" : " racers";

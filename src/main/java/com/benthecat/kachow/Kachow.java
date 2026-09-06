@@ -171,6 +171,15 @@ public class Kachow {
                 userInterface.showTaskUnmarked(task);
                 yield true;
             }
+            case EDIT -> {
+                Parser.EditCommand editCommand = parser.parseEditCommand(parsedCommand);
+                Task currentTask = tasks.get(editCommand.taskNumber());
+                Task editedTask = parser.applyEdit(currentTask, editCommand);
+                tasks.replace(editCommand.taskNumber(), editedTask);
+                storage.save(tasks.getTasks());
+                userInterface.showTaskEdited(editedTask);
+                yield true;
+            }
             case DELETE -> {
                 Task task = tasks.delete(parser.parseTaskNumber(parsedCommand));
                 storage.save(tasks.getTasks());

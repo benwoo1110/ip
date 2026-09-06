@@ -129,6 +129,23 @@ class UiTest {
                 getCapturedOutput());
     }
 
+    /** Verifies the confirmation shown after editing a task detail. */
+    @Test
+    void showTaskEdited_editedEvent_printsUpdatedTask() {
+        Event event = new Event(
+                "project meeting",
+                new DateTimeParser.ParsedDateTime(LocalDateTime.of(2026, 8, 6, 14, 0)),
+                new DateTimeParser.ParsedDateTime(LocalDateTime.of(2026, 8, 6, 17, 0)));
+
+        userInterface.showTaskEdited(event);
+
+        assertEquals(joinLines(
+                "    Ka-chow! This racer's details are updated:",
+                "      [E][ ] project meeting (from: Aug 06 2026, 2:00 PM"
+                        + " to: Aug 06 2026, 5:00 PM)"),
+                getCapturedOutput());
+    }
+
     private String getCapturedOutput() {
         userInterface.outputData();
         return capturedOutputStream.toString(StandardCharsets.UTF_8);

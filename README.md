@@ -95,10 +95,17 @@ Use `find KEYWORD` to search task descriptions without regard to letter case.
 Search results also retain the tasks' original numbers.
 Tasks are loaded from
 `./data/kachow.txt` when Kachow starts and are saved there automatically after
-every add, mark, unmark, or delete command. Kachow creates the `data` directory
+every add, mark, unmark, edit, or delete command. Kachow creates the `data` directory
 and file automatically on first use. Enter `list` to display the saved tasks.
 Use `mark NUMBER` or `unmark NUMBER` to change a task's completion status; task
 numbers start at 1 as shown by `list`. Use `delete NUMBER` to remove a task from
 the race; the remaining tasks are renumbered automatically.
+Use `edit NUMBER /description DESCRIPTION` to rename any task. For deadlines,
+use `edit NUMBER /by DATE_OR_TIME`; for events, use `edit NUMBER /from START` or
+`edit NUMBER /to END`. Include multiple fields in one command when needed, for
+example `edit 3 /from 1300 /to 1700 /description planning meeting`. All fields
+are applied together only after the complete edit is valid. The command keeps
+the task's completion status, position, and unmentioned details. A time without
+a date keeps that detail's existing date, for example `edit 3 /to 1700`.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.

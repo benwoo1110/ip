@@ -3,6 +3,7 @@ package com.benthecat.kachow.parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -66,7 +67,7 @@ class ParserTest {
         assertEquals("That command stalled on the starting line. Enter a command to keep racing.",
                 empty.getMessage());
         assertEquals("That command took a wrong turn. Try todo, deadline, event, list, find, on, mark,"
-                + " unmark, delete, or bye.", unknown.getMessage());
+                + " unmark, edit, delete, or bye.", unknown.getMessage());
     }
 
     /** Verifies command-specific guidance when a no-argument command has extra text. */
@@ -145,6 +146,95 @@ class ParserTest {
             assertThrows(KachowException.class, () ->
                     parser.parseTaskNumber(parser.parse(command)));
         }
+    }
+
+    /** Verifies parsing of multiple edit fields in any order. */
+    @Test
+    void parseEditCommand_multipleFields_returnsNumberAndAllChanges() throws KachowException {
+        Parser.EditCommand editCommand = parser.parseEditCommand(
+                parser.parse("edit 3 /to 2026-08-06 1700 /description planning meeting /from 1300"));
+
+        assertEquals(3, editCommand.taskNumber());
+        assertEquals(3, editCommand.changes().size());
+        assertEquals("2026-08-06 1700", editCommand.changes().get(Parser.EditField.TO));
+        assertEquals("planning meeting", editCommand.changes().get(Parser.EditField.DESCRIPTION));
+        assertEquals("1300", editCommand.changes().get(Parser.EditField.FROM));
+    }
+
+    /** Verifies that editing several event fields preserves completion status. */
+    @Test
+    void applyEdit_multipleEventFields_changesAllRequestedDetails() throws KachowException {
+        Event original = new Event(
+                "project meeting",
+                new DateTimeParser.ParsedDateTime(LocalDateTime.of(2026, 8, 6, 14, 0)),
+                new DateTimeParser.ParsedDateTime(LocalDateTime.of(2026, 8, 6, 16, 0)),
+                true);
+        Parser.EditCommand editCommand = parser.parseEditCommand(
+                parser.parse("edit 1 /from 1300 /to 1700 /description planning meeting"));
+
+        Event edited = assertInstanceOf(Event.class, parser.applyEdit(original, editCommand));
+
+        assertEquals("planning meeting", edited.getDescription());
+        assertEquals(LocalDateTime.of(2026, 8, 6, 13, 0), edited.getFrom().toLocalDateTime());
+        assertEquals(LocalDateTime.of(2026, 8, 6, 17, 0), edited.getTo().toLocalDateTime());
+        assertTrue(edited.isDone());
+    }
+
+    /** Verifies editable descriptions and deadline values across the remaining task types. */
+    @Test
+    void applyEdit_descriptionAndDeadlineDueDate_changeOnlySelectedFields() throws KachowException {
+        Todo todo = new Todo("read book", true);
+        Deadline deadline = new Deadline("submit report", LocalDateTime.of(2026, 8, 6, 14, 0), true);
+
+        Todo renamedTodo = assertInstanceOf(Todo.class,
+                parser.applyEdit(todo, parser.parseEditCommand(parser.parse("edit 1 /description read novel"))));
+        Deadline rescheduledDeadline = assertInstanceOf(Deadline.class, parser.applyEdit(deadline,
+                parser.parseEditCommand(parser.parse("edit 2 /description final report /by 1800"))));
+
+        assertEquals("read novel", renamedTodo.getDescription());
+        assertTrue(renamedTodo.isDone());
+        assertEquals("final report", rescheduledDeadline.getDescription());
+        assertEquals(LocalDateTime.of(2026, 8, 6, 18, 0),
+                rescheduledDeadline.getByValue().toLocalDateTime());
+        assertTrue(rescheduledDeadline.isDone());
+    }
+
+    /** Verifies edit-specific guidance and validation for malformed or inapplicable changes. */
+    @Test
+    void parseAndApplyEdit_invalidRequests_throwSpecificGuidance() throws KachowException {
+        List<String> malformedCommands = List.of(
+                "edit",
+                "edit zero /description name",
+                "edit 1",
+                "edit 1 /unknown value",
+                "edit 1 /description",
+                "edit 1 /from 1300 /to");
+        for (String command : malformedCommands) {
+            assertThrows(KachowException.class, () -> parser.parseEditCommand(parser.parse(command)));
+        }
+
+        Todo todo = new Todo("read book");
+        Event event = new Event(
+                "meeting",
+                new DateTimeParser.ParsedDateTime(LocalDateTime.of(2026, 8, 6, 14, 0)),
+                new DateTimeParser.ParsedDateTime(LocalDateTime.of(2026, 8, 6, 16, 0)));
+
+        KachowException duplicateField = assertThrows(KachowException.class, () ->
+                parser.parseEditCommand(parser.parse("edit 1 /to 1700 /to 1800")));
+        assertEquals("That edit repeats /to. Specify each detail once.", duplicateField.getMessage());
+
+        KachowException unsupportedField = assertThrows(KachowException.class, () ->
+                parser.applyEdit(todo, parser.parseEditCommand(
+                        parser.parse("edit 1 /description renamed /to 1700"))));
+        assertEquals("This racer does not have a /to detail.", unsupportedField.getMessage());
+        assertEquals("read book", todo.getDescription());
+
+        assertThrows(KachowException.class, () -> parser.applyEdit(event,
+                parser.parseEditCommand(parser.parse(
+                        "edit 1 /from 1800 /to 1700 /description invalid meeting"))));
+        assertEquals("meeting", event.getDescription());
+        assertEquals(LocalDateTime.of(2026, 8, 6, 14, 0), event.getFrom().toLocalDateTime());
+        assertEquals(LocalDateTime.of(2026, 8, 6, 16, 0), event.getTo().toLocalDateTime());
     }
 
     /** Verifies that the on command accepts valid dates and rejects missing or timed values. */

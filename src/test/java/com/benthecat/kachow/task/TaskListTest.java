@@ -68,6 +68,21 @@ class TaskListTest {
         assertTrue(task.isDone());
     }
 
+    /** Verifies that replacement keeps the edited task's original list position. */
+    @Test
+    void replace_middleTask_changesOnlyTaskAtSelectedPosition() throws KachowException {
+        Todo first = new Todo("qualifying");
+        Todo original = new Todo("old details", true);
+        Todo third = new Todo("podium");
+        Todo replacement = new Todo("new details", true);
+        TaskList tasks = new TaskList(List.of(first, original, third));
+
+        Task edited = tasks.replace(2, replacement);
+
+        assertSame(replacement, edited);
+        assertEquals(List.of(first, replacement, third), tasks.getTasks());
+    }
+
     /** Verifies date lookup, spanning events, original numbering, and todo exclusion. */
     @Test
     void findOn_deadlinesAndSpanningEvents_keepOriginalTaskNumbersAndExcludeTodos() {

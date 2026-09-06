@@ -45,6 +45,116 @@ bye
     ____________________________________________________________
 ```
 
+## Test Case: UI-15 Edit task details atomically
+
+### Aim
+
+Verify that `edit` accepts one or several fields in any order; applies multiple changes atomically; accepts a
+time-only value while retaining that detail's date; preserves completion status and list position; and rejects
+invalid task numbers, duplicate or unsupported fields, invalid dates, and reversed event ranges without mutation.
+
+### Command
+
+```json
+["test/run-kachow-isolated.sh"]
+```
+
+### Inputs
+
+```text
+todo read book
+deadline submit report /by 2026-08-06 1400
+event project meeting /from 2026-08-06 1400 /to 1600
+mark 3
+edit 1 /description read novel
+edit 2 /by 1800 /description submit final report
+edit 3 /from 1300 /to 1700 /description planning meeting
+edit
+edit zero /description name
+edit 4 /description name
+edit 1 /description should not stick /by 2026-08-07
+edit 3 /from 1800 /to 1700 /description should not stick
+edit 3 /to tomorrow /description should not stick
+edit 3 /to 1800 /to 1900
+list
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, the fastest chatbot on the track.
+    What can I do for you before the next lap?
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [T][ ] read book
+    Now you've got 1 racer ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [D][ ] submit report (by: Aug 06 2026, 2:00 PM)
+    Now you've got 2 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! A new racer joined the starting grid:
+      [E][ ] project meeting (from: Aug 06 2026, 2:00 PM to: Aug 06 2026, 4:00 PM)
+    Now you've got 3 racers ready to roll.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This task crossed the finish line:
+      [E][X] project meeting (from: Aug 06 2026, 2:00 PM to: Aug 06 2026, 4:00 PM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer's details are updated:
+      [T][ ] read novel
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer's details are updated:
+      [D][ ] submit final report (by: Aug 06 2026, 6:00 PM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! This racer's details are updated:
+      [E][X] planning meeting (from: Aug 06 2026, 1:00 PM to: Aug 06 2026, 5:00 PM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Tell me which racer to edit. Use: edit TASK_NUMBER FIELD VALUE [FIELD VALUE]...
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That racer number isn't a whole positive number. Use: edit TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! Racer 4 isn't on the grid. Use list to check the task numbers.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! This racer does not have a /by detail.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That event ends before it starts. Use a full date when moving it across midnight.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That event end date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm, or an AM/PM time.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop! That edit repeats /to. Specify each detail once.
+    ____________________________________________________________
+    ____________________________________________________________
+    Rev up! Here are the tasks in today's race:
+    1.[T][ ] read novel
+    2.[D][ ] submit final report (by: Aug 06 2026, 6:00 PM)
+    3.[E][X] planning meeting (from: Aug 06 2026, 1:00 PM to: Aug 06 2026, 5:00 PM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Race complete! Catch you on the next lap. Ka-chow!
+    ____________________________________________________________
+```
+
 ## Test Case: UI-10 Load persisted tasks on startup
 
 ### Aim
@@ -454,7 +564,7 @@ bye
     Pit stop! That event is missing its /to finish line. Use: event DESCRIPTION /from START /to END
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, find, on, mark, unmark, delete, or bye.
+    Pit stop! That command took a wrong turn. Try todo, deadline, event, list, find, on, mark, unmark, edit, delete, or bye.
     ____________________________________________________________
     ____________________________________________________________
     Race complete! Catch you on the next lap. Ka-chow!

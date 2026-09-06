@@ -64,6 +64,40 @@ public class TaskList {
     }
 
     /**
+     * Returns a numbered task after translating its user-facing number into a list index.
+     *
+     * @param taskNumber Positive, one-based task number.
+     * @return Task at the requested position.
+     * @throws KachowException If the task number is outside the list.
+     */
+    public Task get(int taskNumber) throws KachowException {
+        assert taskNumber > 0 : "Task numbers must be positive";
+
+        if (taskNumber > tasks.size()) {
+            throw new KachowException(
+                    "Racer " + taskNumber + " isn't on the grid. Use list to check the task numbers.");
+        }
+        return tasks.get(taskNumber - 1);
+    }
+
+    /**
+     * Replaces a numbered task without changing its position in the list.
+     *
+     * @param taskNumber Positive, one-based task number.
+     * @param replacement Updated task to store at the same position.
+     * @return Stored replacement task.
+     * @throws KachowException If the task number is outside the list.
+     */
+    public Task replace(int taskNumber, Task replacement) throws KachowException {
+        assert replacement != null : "Replacement task must not be null";
+
+        get(taskNumber);
+        tasks.set(taskNumber - 1, replacement);
+        assert tasks.get(taskNumber - 1) == replacement : "Edited task must occupy the original position";
+        return replacement;
+    }
+
+    /**
      * Finds deadlines and events occurring on a date while retaining their original task numbers.
      */
     public List<NumberedTask> findOn(LocalDate date) {
@@ -110,17 +144,6 @@ public class TaskList {
     /** Reports whether the task list has no tasks. */
     public boolean isEmpty() {
         return tasks.isEmpty();
-    }
-
-    /** Gets a task after translating its user-facing number into a list index. */
-    private Task get(int taskNumber) throws KachowException {
-        assert taskNumber > 0 : "Task numbers must be positive";
-
-        if (taskNumber > tasks.size()) {
-            throw new KachowException(
-                    "Racer " + taskNumber + " isn't on the grid. Use list to check the task numbers.");
-        }
-        return tasks.get(taskNumber - 1);
     }
 
     /** Associates a task with the one-based number it has in the complete list. */
