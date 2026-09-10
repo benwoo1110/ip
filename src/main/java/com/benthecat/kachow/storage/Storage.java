@@ -3,16 +3,21 @@ package com.benthecat.kachow.storage;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.benthecat.kachow.exception.KachowException;
 import com.benthecat.kachow.parser.DateTimeParser;
 import com.benthecat.kachow.task.Deadline;
 import com.benthecat.kachow.task.Event;
 import com.benthecat.kachow.task.Task;
+import com.benthecat.kachow.task.TaskList;
 import com.benthecat.kachow.task.Todo;
 
 /**
@@ -22,6 +27,10 @@ public class Storage {
     private static final String FIELD_SEPARATOR = " | ";
 
     private final Path dataFile;
+    private boolean hasLoaded;
+    private boolean hasLoadingFailed;
+    // Retains the last disk contents so another process's edits are not silently overwritten.
+    private String savedContents;
 
     /**
      * Creates storage backed by the given data file.
@@ -39,43 +48,122 @@ public class Storage {
      * @throws KachowException If the file exists but cannot be read or contains invalid task data.
      */
     public List<Task> load() throws KachowException {
-        if (!Files.exists(dataFile)) {
-            return new ArrayList<>();
-        }
-
         try {
-            List<Task> tasks = new ArrayList<>();
-            List<String> lines = Files.readAllLines(dataFile, StandardCharsets.UTF_8);
+            String contents = readContents();
+            TaskList tasks = new TaskList();
+            List<String> lines = contents == null ? List.of() : contents.lines().toList();
             for (int i = 0; i < lines.size(); i++) {
                 if (!lines.get(i).isBlank()) {
-                    tasks.add(parseTask(lines.get(i), i + 1));
+                    try {
+                        tasks.add(parseTask(lines.get(i), i + 1));
+                    } catch (IllegalArgumentException | KachowException exception) {
+                        throw createInvalidDataException(i + 1);
+                    }
                 }
             }
-            return tasks;
-        } catch (IOException exception) {
-            throw new KachowException("I couldn't read task data from " + dataFile + ".", exception);
+            savedContents = contents;
+            hasLoaded = true;
+            hasLoadingFailed = false;
+            return tasks.getTasks();
+        } catch (IOException | SecurityException exception) {
+            hasLoadingFailed = true;
+            throw new KachowException("I couldn't read task data from " + dataFile
+                    + ". Check that the path is a readable file.", exception);
+        } catch (KachowException exception) {
+            hasLoadingFailed = true;
+            throw exception;
         }
     }
 
     /**
-     * Saves the complete task list, creating the data directory when it does not exist yet.
+     * Saves through a temporary file and atomically replaces the original only after writing succeeds.
+     * Refuses writes after a failed load or when another process has changed the stored data.
      *
      * @param tasks Tasks to persist.
-     * @throws KachowException If the task data cannot be written.
+     * @throws KachowException If the task data cannot be safely written.
      */
     public void save(List<Task> tasks) throws KachowException {
+        if (hasLoadingFailed) {
+            throw new KachowException("Saving is disabled because task data could not be loaded. "
+                    + "Repair the file or restore a backup, then restart Kachow. Your file has not been changed.");
+        }
+        if (!hasLoaded) {
+            load();
+        }
+        Path temporaryFile = null;
         try {
-            Path parent = dataFile.getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
+            requireUnchangedFile();
+            if (Files.exists(dataFile) && !Files.isWritable(dataFile)) {
+                throw new IOException("The task file is not writable.");
             }
+            Path parent = dataFile.toAbsolutePath().getParent();
+            Files.createDirectories(parent);
+            String contents = tasks.isEmpty() ? "" : String.join("\n", tasks.stream()
+                    .map(this::formatTask).toList()) + "\n";
+            temporaryFile = Files.createTempFile(parent, ".kachow-", ".tmp");
+            Files.writeString(temporaryFile, contents, StandardCharsets.UTF_8);
+            requireUnchangedFile();
+            // Do not fall back to truncating the original when atomic replacement is unavailable.
+            Files.move(temporaryFile, dataFile, StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+            savedContents = contents;
+        } catch (IOException | SecurityException exception) {
+            throw new KachowException("I couldn't save task data to " + dataFile
+                    + ". No changes were applied. Check file permissions, available disk space, "
+                    + "and support for atomic file replacement, then try again.", exception);
+        } finally {
+            deleteTemporaryFile(temporaryFile);
+        }
+    }
 
-            List<String> lines = tasks.stream()
-                    .map(this::formatTask)
-                    .toList();
-            Files.write(dataFile, lines, StandardCharsets.UTF_8);
-        } catch (IOException exception) {
-            throw new KachowException("I couldn't save task data to " + dataFile + ".", exception);
+    /** Reads the exact UTF-8 contents, distinguishing an absent file from an unreadable one. */
+    private String readContents() throws IOException {
+        try {
+            BasicFileAttributes attributes = Files.readAttributes(
+                    dataFile, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+            if (!attributes.isRegularFile()) {
+                throw new IOException("The task path must be a regular file, not a directory or symbolic link.");
+            }
+            return Files.readString(dataFile, StandardCharsets.UTF_8);
+        } catch (NoSuchFileException exception) {
+            requireDirectoryAncestor();
+            return null;
+        }
+    }
+
+    /** Distinguishes missing directories from a file that blocks the configured directory path. */
+    private void requireDirectoryAncestor() throws IOException {
+        Path parent = dataFile.toAbsolutePath().getParent();
+        while (parent != null) {
+            try {
+                if (!Files.readAttributes(parent, BasicFileAttributes.class).isDirectory()) {
+                    throw new IOException("A parent of the task file is not a directory.");
+                }
+                return;
+            } catch (NoSuchFileException ignored) {
+                // Check the nearest existing ancestor; genuinely missing directories can be created on save.
+                parent = parent.getParent();
+            }
+        }
+    }
+
+    /** Prevents a stale application instance from replacing another writer's changes. */
+    private void requireUnchangedFile() throws IOException, KachowException {
+        if (!Objects.equals(savedContents, readContents())) {
+            throw new KachowException("The task file changed outside Kachow. No changes were applied. "
+                    + "Restart Kachow to load the latest tasks.");
+        }
+    }
+
+    /** Removes an unfinished temporary file without hiding the original save failure. */
+    private void deleteTemporaryFile(Path temporaryFile) {
+        if (temporaryFile == null) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(temporaryFile);
+        } catch (IOException | SecurityException ignored) {
+            // A leftover temporary file does not affect the original data or the next save attempt.
         }
     }
 

@@ -18,7 +18,7 @@ public class Event extends Task {
      * @param description Text describing the event.
      * @param from Parsed date and optional time at which the event starts.
      * @param to Parsed date and optional time at which the event ends.
-     * @throws IllegalArgumentException If the event ends before it starts.
+     * @throws IllegalArgumentException If the event does not end after it starts.
      */
     public Event(String description, DateTimeParser.ParsedDateTime from, DateTimeParser.ParsedDateTime to) {
         this(description, from, to, false);
@@ -31,15 +31,15 @@ public class Event extends Task {
      * @param from Parsed date and optional time at which the event starts.
      * @param to Parsed date and optional time at which the event ends.
      * @param isDone Whether the event has been completed.
-     * @throws IllegalArgumentException If the event ends before it starts.
+     * @throws IllegalArgumentException If the event does not end after it starts.
      */
     public Event(String description, DateTimeParser.ParsedDateTime from, DateTimeParser.ParsedDateTime to,
             boolean isDone) {
         super(description, isDone);
         this.startDateTime = Objects.requireNonNull(from);
         this.endDateTime = Objects.requireNonNull(to);
-        if (to.toLocalDateTime().isBefore(from.toLocalDateTime())) {
-            throw new IllegalArgumentException("An event cannot end before it starts.");
+        if (!to.toLocalDateTime().isAfter(from.toLocalDateTime())) {
+            throw new IllegalArgumentException("An event must end after it starts.");
         }
     }
 

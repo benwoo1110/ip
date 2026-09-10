@@ -39,9 +39,16 @@ public class Parser {
      * @throws KachowException If the command keyword is empty or unsupported.
      */
     public ParsedCommand parse(String input) throws KachowException {
-        assert input != null : "User input must not be null";
+        if (input == null) {
+            throw new KachowException("Enter a command to keep racing.");
+        }
+        if (input.codePoints().anyMatch(character -> (
+                Character.isISOControl(character) && character != '\t')
+                        || character == 0x2028 || character == 0x2029)) {
+            throw new KachowException("Enter one command without line breaks or control characters.");
+        }
 
-        String commandText = input.strip();
+        String commandText = input.replaceAll("(?U)\\s+", " ").strip();
         int separatorIndex = findFirstWhitespaceIndex(commandText);
         String keyword = separatorIndex == -1 ? commandText : commandText.substring(0, separatorIndex);
         String argument = separatorIndex == -1 ? "" : commandText.substring(separatorIndex).strip();
@@ -98,7 +105,21 @@ public class Parser {
         if (description.isBlank()) {
             throw new KachowException("This racer needs a name. Use: todo DESCRIPTION");
         }
-        return new Todo(description);
+        return new Todo(validateDescription(description));
+    }
+
+    /** Validates descriptions before constructing a task and explains unsupported field markers. */
+    private String validateDescription(String description) throws KachowException {
+        try {
+            String normalizedDescription = Task.normalizeDescription(description);
+            if (findNextEditFieldIndex(normalizedDescription, 0) != -1) {
+                throw new KachowException(
+                        "Descriptions cannot contain slash-prefixed fields. Check the command's parameters.");
+            }
+            return normalizedDescription;
+        } catch (IllegalArgumentException exception) {
+            throw new KachowException(exception.getMessage(), exception);
+        }
     }
 
     /** Parses a deadline in the form {@code DESCRIPTION /by DATE_OR_TIME}. */
@@ -116,7 +137,7 @@ public class Parser {
                     "That deadline has too many /by checkpoints. Use exactly one: " + USAGE_DEADLINE);
         }
 
-        String description = argument.substring(0, byIndex).strip();
+        String description = validateDescription(argument.substring(0, byIndex).strip());
         String by = argument.substring(byIndex + 3).strip();
         if (description.isEmpty()) {
             throw new KachowException(
@@ -160,7 +181,7 @@ public class Parser {
                     "That event has extra route markers. Use one /from and one /to: " + USAGE_EVENT);
         }
 
-        String description = argument.substring(0, fromIndex).strip();
+        String description = validateDescription(argument.substring(0, fromIndex).strip());
         String from = argument.substring(fromIndex + 5, toIndex).strip();
         String to = argument.substring(toIndex + 3).strip();
         if (description.isEmpty()) {
@@ -191,7 +212,7 @@ public class Parser {
             return new Event(description, parsedFrom, parsedTo);
         } catch (IllegalArgumentException exception) {
             throw new KachowException(
-                    "That event ends before it starts. Use a full /to date for an overnight event.",
+                    "That event must end after it starts. Use a full /to date for an overnight event.",
                     exception);
         }
     }
@@ -302,8 +323,8 @@ public class Parser {
         assert task != null : "Edited task must not be null";
         assert editCommand != null : "Edit command must not be null";
 
-        String description = editCommand.changes()
-                .getOrDefault(EditField.DESCRIPTION, task.getDescription());
+        String description = validateDescription(editCommand.changes()
+                .getOrDefault(EditField.DESCRIPTION, task.getDescription()));
         return switch (task) {
             case Todo todo -> editTodo(todo, description, editCommand);
             case Deadline deadline -> editDeadline(deadline, description, editCommand);
@@ -344,6 +365,9 @@ public class Parser {
 
     /** Parses a positive task number from a complete numeric token. */
     private int parsePositiveTaskNumber(String taskNumberText, Command action) throws KachowException {
+        if (!taskNumberText.matches("[0-9]+")) {
+            throw createInvalidTaskNumberException(action, null);
+        }
         int taskNumber;
         try {
             taskNumber = Integer.parseInt(taskNumberText);
@@ -405,7 +429,7 @@ public class Parser {
             return new Event(description, from, to, event.isDone());
         } catch (IllegalArgumentException exception) {
             throw new KachowException(
-                    "That event ends before it starts. Use a full date when moving it across midnight.",
+                    "That event must end after it starts. Use a full date when moving it across midnight.",
                     exception);
         }
     }

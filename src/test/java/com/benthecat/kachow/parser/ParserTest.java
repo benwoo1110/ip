@@ -32,6 +32,36 @@ class ParserTest {
         assertEquals("return book /by 2019-12-02", parsed.argument());
     }
 
+    @Test
+    void parse_untrustedInput_rejectsControlsAndNormalizesUnicodeSpaces() throws KachowException {
+        for (String input : List.of("todo one\ntodo two", "todo bad\rline", "find \u001b[2J",
+                "todo hidden\u0000", "todo one\u2028two")) {
+            assertThrows(KachowException.class, () -> parser.parse(input));
+        }
+        assertThrows(KachowException.class, () -> parser.parse(null));
+        assertEquals("read book", parseTask("\u00a0todo\t read\u2003 book\u00a0").getDescription());
+    }
+
+    @Test
+    void parseTask_unsafeDescriptionsAndEqualRanges_rejectsInvalidData() {
+        for (String input : List.of("todo read | book", "todo read /by tomorrow",
+                "deadline read /oops x /by 2026-09-10", "event read /oops x /from 2026-09-10 /to 2026-09-11",
+                "event zero /from 2026-09-10 1000 /to 1000",
+                "event zero /from 2026-09-10 /to 2026-09-10",
+                "deadline invalid /by 2026-02-30", "deadline invalid /by 2026-09-10 24:00")) {
+            assertThrows(KachowException.class, () -> parseTask(input), input);
+        }
+    }
+
+    @Test
+    void parseTaskNumber_signedUnicodeAndOverflowNumbers_rejectsInvalidTokens() {
+        for (String number : List.of("+1", "-1", "0", "１", "١", "1.0", "999999999999999999", "1 2")) {
+            assertThrows(KachowException.class, () -> parser.parseTaskNumber(parser.parse("mark " + number)));
+            assertThrows(KachowException.class, () -> parser.parseEditCommand(
+                    parser.parse("edit " + number + " /description changed")));
+        }
+    }
+
     /** Verifies that each task-creation command produces the correct task values. */
     @Test
     void parseTask_allTaskCommands_returnCorrectTaskTypesAndValues() throws KachowException {
@@ -131,7 +161,7 @@ class ParserTest {
                                 + " or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm,"
                                 + " or an AM/PM time."),
                 new InvalidInput("event backwards /from 2024-01-02 1800 /to 1700",
-                        "That event ends before it starts. Use a full /to date for an overnight event."));
+                        "That event must end after it starts. Use a full /to date for an overnight event."));
 
         testCases.forEach(this::assertInvalidTask);
     }

@@ -18,7 +18,7 @@ public class Kachow {
     private static final String DATA_FILE = "./data/kachow.txt";
 
     private final Storage storage;
-    private final TaskList tasks;
+    private TaskList tasks;
     private final Ui userInterface;
     private final Parser parser;
     private final KachowException loadingException;
@@ -123,6 +123,12 @@ public class Kachow {
         }
     }
 
+    /** Commits in-memory changes only after their complete replacement file has been saved. */
+    private void saveChanges(TaskList updatedTasks) throws KachowException {
+        storage.save(updatedTasks.getTasks());
+        tasks = updatedTasks;
+    }
+
     /**
      * Executes one validated command.
      *
@@ -131,6 +137,7 @@ public class Kachow {
      * @throws KachowException If a task operation cannot be completed or persisted.
      */
     private boolean execute(Parser.ParsedCommand parsedCommand) throws KachowException {
+        TaskList updatedTasks = new TaskList(tasks.getTasks());
         return switch (parsedCommand.command()) {
             case BYE -> {
                 parser.requireNoArgument(parsedCommand);
@@ -149,8 +156,8 @@ public class Kachow {
             }
             case TODO, DEADLINE, EVENT -> {
                 Task task = parser.parseTask(parsedCommand);
-                tasks.add(task);
-                storage.save(tasks.getTasks());
+                updatedTasks.add(task);
+                saveChanges(updatedTasks);
                 userInterface.showTaskAdded(task, tasks.getSize());
                 yield true;
             }
@@ -160,14 +167,18 @@ public class Kachow {
                 yield true;
             }
             case MARK -> {
-                Task task = tasks.mark(parser.parseTaskNumber(parsedCommand));
-                storage.save(tasks.getTasks());
+                int taskNumber = parser.parseTaskNumber(parsedCommand);
+                Task task = tasks.get(taskNumber).withDoneStatus(true);
+                updatedTasks.replace(taskNumber, task);
+                saveChanges(updatedTasks);
                 userInterface.showTaskMarked(task);
                 yield true;
             }
             case UNMARK -> {
-                Task task = tasks.unmark(parser.parseTaskNumber(parsedCommand));
-                storage.save(tasks.getTasks());
+                int taskNumber = parser.parseTaskNumber(parsedCommand);
+                Task task = tasks.get(taskNumber).withDoneStatus(false);
+                updatedTasks.replace(taskNumber, task);
+                saveChanges(updatedTasks);
                 userInterface.showTaskUnmarked(task);
                 yield true;
             }
@@ -175,14 +186,14 @@ public class Kachow {
                 Parser.EditCommand editCommand = parser.parseEditCommand(parsedCommand);
                 Task currentTask = tasks.get(editCommand.taskNumber());
                 Task editedTask = parser.applyEdit(currentTask, editCommand);
-                tasks.replace(editCommand.taskNumber(), editedTask);
-                storage.save(tasks.getTasks());
+                updatedTasks.replace(editCommand.taskNumber(), editedTask);
+                saveChanges(updatedTasks);
                 userInterface.showTaskEdited(editedTask);
                 yield true;
             }
             case DELETE -> {
-                Task task = tasks.delete(parser.parseTaskNumber(parsedCommand));
-                storage.save(tasks.getTasks());
+                Task task = updatedTasks.delete(parser.parseTaskNumber(parsedCommand));
+                saveChanges(updatedTasks);
                 userInterface.showTaskDeleted(task, tasks.getSize());
                 yield true;
             }

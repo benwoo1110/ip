@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -112,4 +113,70 @@ class StorageTest {
         assertEquals("Task data on line 1 of " + invalidFieldsFile + " is invalid.",
                 invalidFields.getMessage());
     }
+    @Test
+    void load_invalidRecords_blocksSavingAndPreservesOriginalFile() throws IOException {
+        Path dataFile = tempDirectory.resolve("kachow.txt");
+        for (String record : List.of("T | 0 | ", "T | 0 | bad|description", "T | 0 | bad\u0000text",
+                "X | 0 | unknown", "D | 0 | impossible | 2026-02-30",
+                "E | 0 | equal | 2026-09-10 | 2026-09-10", "T | 0 | valid\nT | 1 | VALID")) {
+            String contents = "T | 0 | first\n\n" + record + "\n";
+            Files.writeString(dataFile, contents);
+            Storage storage = new Storage(dataFile);
+            assertThrows(KachowException.class, storage::load);
+            assertThrows(KachowException.class, () -> storage.save(List.of(new Todo("replacement"))));
+            assertEquals(contents, Files.readString(dataFile));
+        }
+    }
+
+    @Test
+    void load_invalidEncodingDirectoryAndBlockedParent_reportsReadErrors() throws IOException {
+        Path dataFile = tempDirectory.resolve("kachow.txt");
+        Files.write(dataFile, new byte[] {(byte) 0xc3, (byte) 0x28});
+        assertThrows(KachowException.class, () -> new Storage(dataFile).load());
+        assertThrows(KachowException.class, () -> new Storage(tempDirectory).load());
+        assertThrows(KachowException.class, () -> new Storage(dataFile.resolve("child.txt")).load());
+    }
+
+    @Test
+    void save_externalChangeOrDeletion_preservesOtherWritersData() throws IOException, KachowException {
+        Path dataFile = tempDirectory.resolve("kachow.txt");
+        Storage storage = new Storage(dataFile);
+        storage.save(List.of(new Todo("original")));
+        Files.writeString(dataFile, "T | 0 | external\n");
+        assertThrows(KachowException.class, () -> storage.save(List.of(new Todo("replacement"))));
+        assertEquals("T | 0 | external\n", Files.readString(dataFile));
+        Files.delete(dataFile);
+        assertThrows(KachowException.class, () -> storage.save(List.of(new Todo("replacement"))));
+        assertTrue(Files.notExists(dataFile));
+    }
+
+    @Test
+    void save_failedWrite_cleansTemporaryFilesAndAllowsRetry() throws IOException, KachowException {
+        Path dataFile = tempDirectory.resolve("data/kachow.txt");
+        Storage storage = new Storage(dataFile);
+        storage.load();
+        Files.writeString(tempDirectory.resolve("data"), "blocked parent");
+        assertThrows(KachowException.class, () -> storage.save(List.of(new Todo("replacement"))));
+        assertEquals("blocked parent", Files.readString(tempDirectory.resolve("data")));
+        Files.delete(tempDirectory.resolve("data"));
+        storage.save(List.of(new Todo("retry")));
+        assertEquals("T | 0 | retry\n", Files.readString(dataFile));
+        try (var files = Files.list(dataFile.getParent())) {
+            assertEquals(List.of(dataFile), files.toList());
+        }
+    }
+
+    @Test
+    void load_symbolicLink_reportsErrorWithoutChangingTarget() throws IOException {
+        assumeTrue(Files.getFileStore(tempDirectory).supportsFileAttributeView("posix"));
+        Path target = tempDirectory.resolve("original.txt");
+        Files.writeString(target, "T | 0 | original\n");
+        Path link = tempDirectory.resolve("kachow.txt");
+        Files.createSymbolicLink(link, target);
+        Storage storage = new Storage(link);
+        assertThrows(KachowException.class, storage::load);
+        assertThrows(KachowException.class, () -> storage.save(List.of(new Todo("replacement"))));
+        assertEquals("T | 0 | original\n", Files.readString(target));
+    }
+
 }

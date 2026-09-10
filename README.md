@@ -90,7 +90,7 @@ DATE_OR_TIME`, or `event DESCRIPTION /from START /to END`. Deadline and event
 dates accept `yyyy-MM-dd`, `yyyy/M/d`, `d/M/yyyy`, or padded US-style
 `MM/dd/yyyy`; add a time as `HHmm`, `HH:mm`, or an
 AM/PM time such as `6pm` or `6 PM`. A time-only event end uses the event's start date and must not be
-earlier than its start; use a full end date for an overnight event.
+earlier than or equal to its start; use a full end date for an overnight event.
 Use `on DATE` to list deadlines due and events occurring on a date. The command
 retains the original task numbers, making its results usable with `mark`,
 `unmark`, and `delete`. To preserve `2/12/2019` as 2 December, ambiguous US
@@ -111,5 +111,24 @@ example `edit 3 /from 1300 /to 1700 /description planning meeting`. All fields
 are applied together only after the complete edit is valid. The command keeps
 the task's completion status, position, and unmentioned details. A time without
 a date keeps that detail's existing date, for example `edit 3 /to 1700`.
+
+Commands accept leading/trailing spaces, tabs, and repeated spaces, which are normalized.
+Task numbers must use positive digits (`1`, `2`, ...); signs, decimals, and extra arguments are rejected.
+Descriptions may contain punctuation and Unicode text, but not `|`, line breaks, control characters,
+or separate slash-prefixed fields such as `/oops`. Command fields must appear exactly once where required.
+An event must finish strictly after its start; date-only boundaries are compared at midnight.
+
+Kachow rejects duplicate tasks on add and edit. A duplicate has the same task type, description
+(ignoring case and repeated whitespace), and date/time values, regardless of completion status.
+A date-only value and an explicit midnight time remain distinct details.
+
+If a command is invalid or saving fails, neither the task list nor its saved data is changed.
+Saves use an atomic file replacement; if your filesystem cannot support it, Kachow reports an error.
+Check the file and directory permissions and free disk space before retrying a failed save.
+If startup reports unreadable or malformed data (including duplicate records), saving is disabled
+for that session to protect the original file. Repair the indicated record or restore a backup,
+then restart Kachow. A missing file starts an empty list. The data file must be a regular file,
+not a directory or symbolic link. If another application changes or deletes the file during a
+session, restart Kachow to load that change before modifying tasks. Use one Kachow instance at a time.
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.

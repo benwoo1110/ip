@@ -26,8 +26,67 @@ public abstract class Task {
      * @param isDone Whether the task has been completed.
      */
     public Task(String description, boolean isDone) {
-        this.description = description;
+        this.description = normalizeDescription(description);
         this.isDone = isDone;
+    }
+
+    /**
+     * Validates and normalizes a description so it fits safely in one stored record.
+     *
+     * @param description User-entered or stored description.
+     * @return Description with surrounding whitespace removed and internal whitespace collapsed.
+     * @throws IllegalArgumentException If the description is empty or contains reserved characters.
+     */
+    public static String normalizeDescription(String description) {
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("This racer needs a non-empty description.");
+        }
+        if (description.indexOf('|') >= 0 || description.codePoints().anyMatch(character -> (
+                Character.isISOControl(character) && character != '\t')
+                        || character == 0x2028 || character == 0x2029)) {
+            throw new IllegalArgumentException(
+                    "Descriptions cannot contain |, line breaks, or control characters.");
+        }
+        String normalizedDescription = description.replaceAll("(?U)\\s+", " ").strip();
+        if (normalizedDescription.isEmpty()) {
+            throw new IllegalArgumentException("This racer needs a non-empty description.");
+        }
+        return normalizedDescription;
+    }
+
+    /**
+     * Compares task type, description, and date values, ignoring completion and description case.
+     *
+     * @param other Task to compare with this task.
+     * @return Whether both tasks describe the same work.
+     */
+    public boolean hasSameDetails(Task other) {
+        if (other == null || getClass() != other.getClass()
+                || !description.equalsIgnoreCase(other.description)) {
+            return false;
+        }
+        return switch (this) {
+            case Todo todo -> true;
+            case Deadline deadline -> deadline.getByValue().equals(((Deadline) other).getByValue());
+            case Event event -> event.getFrom().equals(((Event) other).getFrom())
+                    && event.getTo().equals(((Event) other).getTo());
+            default -> false;
+        };
+    }
+
+    /**
+     * Copies this task with a new completion status without mutating the original.
+     *
+     * @param isDone Completion status for the copy.
+     * @return Independent task with the same details.
+     */
+    public Task withDoneStatus(boolean isDone) {
+        return switch (this) {
+            case Todo todo -> new Todo(description, isDone);
+            case Deadline deadline -> new Deadline(description, deadline.getByValue(), isDone);
+            case Event event -> new Event(description, event.getFrom(), event.getTo(), isDone);
+            default -> throw new IllegalArgumentException("Unsupported task type: " + getClass().getName());
+        };
     }
 
     /**

@@ -32,9 +32,10 @@ public class TaskList {
     }
 
     /** Adds a task to the end of the list. */
-    public void add(Task task) {
+    public void add(Task task) throws KachowException {
         assert task != null : "Added task must not be null";
 
+        requireUnique(task, -1);
         tasks.add(task);
     }
 
@@ -71,9 +72,7 @@ public class TaskList {
      * @throws KachowException If the task number is outside the list.
      */
     public Task get(int taskNumber) throws KachowException {
-        assert taskNumber > 0 : "Task numbers must be positive";
-
-        if (taskNumber > tasks.size()) {
+        if (taskNumber <= 0 || taskNumber > tasks.size()) {
             throw new KachowException(
                     "Racer " + taskNumber + " isn't on the grid. Use list to check the task numbers.");
         }
@@ -92,9 +91,20 @@ public class TaskList {
         assert replacement != null : "Replacement task must not be null";
 
         get(taskNumber);
+        requireUnique(replacement, taskNumber - 1);
         tasks.set(taskNumber - 1, replacement);
         assert tasks.get(taskNumber - 1) == replacement : "Edited task must occupy the original position";
         return replacement;
+    }
+
+    /** Rejects duplicate details while excluding the task being edited, if any. */
+    private void requireUnique(Task candidate, int excludedIndex) throws KachowException {
+        for (int i = 0; i < tasks.size(); i++) {
+            if (i != excludedIndex && tasks.get(i).hasSameDetails(candidate)) {
+                throw new KachowException("That racer is already on the grid as task " + (i + 1)
+                        + ". Use list to check its details.");
+            }
+        }
     }
 
     /**

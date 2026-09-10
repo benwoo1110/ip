@@ -10,7 +10,9 @@
   -name '*.java' ! -path '*/ui/fx/*' ! -name 'FxMain.java' ! -name 'Launcher.java' ! -name 'FxPrinter.java'
   -print)`. This deliberately excludes all JavaFX components from the console UI test classpath.
 - Make the test launcher executable with `chmod +x test/run-kachow-isolated.sh`.
-- Run every case from the repository root in a fresh JVM. The launcher uses a fresh working directory for each case, so generated task data cannot leak between cases. A case may instead name a read-only fixture directory when it needs predefined stored data.
+- Run every case from the repository root in a fresh JVM. The launcher uses a fresh working directory for each case, so generated task data cannot leak between cases. A case may name a fixture directory, which the launcher copies into its disposable directory.
+  The optional `--read-only` argument removes write permission from the copied data file.
+  Run permission cases as a regular user whose file permissions are enforced, not as root.
 - Compare combined console output exactly after normalizing CRLF line endings to LF.
 
 ## Test Case: UI-01 Start and exit cleanly
@@ -141,7 +143,7 @@ bye
     Pit stop, buddy! Let's get you rolling. This racer does not have a /by detail.
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop, buddy! Let's get you rolling. That event ends before it starts. Use a full date when moving it across midnight.
+    Pit stop, buddy! Let's get you rolling. That event must end after it starts. Use a full date when moving it across midnight.
     ____________________________________________________________
     ____________________________________________________________
     Pit stop, buddy! Let's get you rolling. That event end date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm, or an AM/PM time.
@@ -207,7 +209,7 @@ bye
 
 ### Aim
 
-Verify that loading an event whose end precedes its start fails safely instead of creating an invalid task object.
+Verify that loading an event whose end precedes its start fails safely instead of creating an invalid task object, and explains how to re-enable saving.
 
 ### Command
 
@@ -233,6 +235,7 @@ Verify that loading an event whose end precedes its start fails safely instead o
     You bring the big dreams; I'll keep the tasks tuned up. Try list, or todo win the Piston Cup.
     ____________________________________________________________
     Pit stop, buddy! Let's get you rolling. Task data on line 1 of ./data/kachow.txt is invalid.
+    Saving is disabled. Repair the task file or restore a backup, then restart Kachow.
 ```
 
 ## Test Case: UI-11 Parse and format task dates and times
@@ -332,7 +335,7 @@ bye
     Pit stop, buddy! Let's get you rolling. That event end date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm, or an AM/PM time.
     ____________________________________________________________
     ____________________________________________________________
-    Pit stop, buddy! Let's get you rolling. That event ends before it starts. Use a full /to date for an overnight event.
+    Pit stop, buddy! Let's get you rolling. That event must end after it starts. Use a full /to date for an overnight event.
     ____________________________________________________________
     ____________________________________________________________
     Crew chief's clipboard! Here are all your tasks, from first lap to finish line:
@@ -1168,6 +1171,237 @@ bye
     ____________________________________________________________
     Crew chief's clipboard! Here are all your tasks, from first lap to finish line:
     1.[T][ ] new race
+    ____________________________________________________________
+    ____________________________________________________________
+    Time to refuel at Flo's. Rest those tires, buddy. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-16 Reject unsafe and duplicate task details
+
+### Aim
+
+Verify whitespace normalization, duplicate add/edit rejection regardless of completion and case,
+reserved characters, unsupported fields, signed and overflowing numbers, impossible dates, and equal
+event boundaries. Rejected commands must preserve descriptions, completion states, and list positions.
+
+### Command
+
+```json
+["test/run-kachow-isolated.sh"]
+```
+
+### Inputs
+
+```text
+  todo   read	book  
+mark 1
+todo READ BOOK
+todo write book
+edit 2 /description read book
+todo read | book
+todo read /by tomorrow
+deadline read /oops x /by 2026-09-10
+mark +1
+delete 999999999999999999
+event zero /from 2026-09-10 /to 2026-09-10
+event zero /from 2026-09-10 1000 /to 1000
+event meeting /from 2026-09-10 1000 /to 1100
+event MEETING /from 2026-09-10 10:00 /to 11:00
+edit 3 /to 1000 /description should not stick
+edit 2 /description unsafe|name
+deadline impossible /by 2026-02-30
+list
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, your Radiator Springs pit-crew pal.
+    You bring the big dreams; I'll keep the tasks tuned up. Try list, or todo win the Piston Cup.
+    ____________________________________________________________
+    ____________________________________________________________
+    Green light, buddy! I've rolled this task onto the starting grid:
+      [T][ ] read book
+    Your garage now holds 1 task.
+    ____________________________________________________________
+    ____________________________________________________________
+    Ka-chow! That's Piston Cup spirit! This task is marked done:
+      [T][X] read book
+    Doc Hudson would be proud. One task at a time, one lap closer.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That racer is already on the grid as task 1. Use list to check its details.
+    ____________________________________________________________
+    ____________________________________________________________
+    Green light, buddy! I've rolled this task onto the starting grid:
+      [T][ ] write book
+    Your garage now holds 2 tasks.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That racer is already on the grid as task 1. Use list to check its details.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. Descriptions cannot contain |, line breaks, or control characters.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. Descriptions cannot contain slash-prefixed fields. Check the command's parameters.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. Descriptions cannot contain slash-prefixed fields. Check the command's parameters.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That racer number isn't a whole positive number. Use: mark TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That racer number isn't a whole positive number. Use: delete TASK_NUMBER
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That event must end after it starts. Use a full /to date for an overnight event.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That event must end after it starts. Use a full /to date for an overnight event.
+    ____________________________________________________________
+    ____________________________________________________________
+    Green light, buddy! I've rolled this task onto the starting grid:
+      [E][ ] meeting (from: Sep 10 2026, 10:00 AM to: Sep 10 2026, 11:00 AM)
+    Your garage now holds 3 tasks.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That racer is already on the grid as task 3. Use list to check its details.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That event must end after it starts. Use a full date when moving it across midnight.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. Descriptions cannot contain |, line breaks, or control characters.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. That deadline date or time is invalid. Use yyyy-MM-dd, yyyy/M/d, d/M/yyyy, or padded MM/dd/yyyy (US), optionally followed by HHmm, HH:mm, or an AM/PM time.
+    ____________________________________________________________
+    ____________________________________________________________
+    Crew chief's clipboard! Here are all your tasks, from first lap to finish line:
+    1.[T][X] read book
+    2.[T][ ] write book
+    3.[E][ ] meeting (from: Sep 10 2026, 10:00 AM to: Sep 10 2026, 11:00 AM)
+    ____________________________________________________________
+    ____________________________________________________________
+    Time to refuel at Flo's. Rest those tires, buddy. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-17 Protect invalid stored data from subsequent commands
+
+### Aim
+
+Verify that a failed load disables saving and a rejected add leaves the in-memory list empty.
+The original fixture is protected by copying it; storage regression tests also verify byte-for-byte preservation.
+
+### Command
+
+```json
+["test/run-kachow-isolated.sh", "test/fixtures/invalid-event-range"]
+```
+
+### Inputs
+
+```text
+todo replacement
+list
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, your Radiator Springs pit-crew pal.
+    You bring the big dreams; I'll keep the tasks tuned up. Try list, or todo win the Piston Cup.
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. Task data on line 1 of ./data/kachow.txt is invalid.
+    Saving is disabled. Repair the task file or restore a backup, then restart Kachow.
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. Saving is disabled because task data could not be loaded. Repair the file or restore a backup, then restart Kachow. Your file has not been changed.
+    ____________________________________________________________
+    ____________________________________________________________
+    Quiet as Radiator Springs before sunrise! Add a task with todo, deadline, or event.
+    ____________________________________________________________
+    ____________________________________________________________
+    Time to refuel at Flo's. Rest those tires, buddy. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-18 Preserve all task state when saving is denied
+
+### Aim
+
+Verify that a readable but non-writable data file rejects add, mark, unmark, edit, and delete,
+while list and bye remain usable. Each failed save must preserve task order, details, and status.
+The fixture is copied and only the disposable copy has its permissions changed.
+
+### Command
+
+```json
+["test/run-kachow-isolated.sh", "test/fixtures/persisted-tasks", "--read-only"]
+```
+
+### Inputs
+
+```text
+todo replacement
+mark 2
+unmark 1
+edit 1 /description replacement
+delete 1
+list
+bye
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, your Radiator Springs pit-crew pal.
+    You bring the big dreams; I'll keep the tasks tuned up. Try list, or todo win the Piston Cup.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. I couldn't save task data to ./data/kachow.txt. No changes were applied. Check file permissions, available disk space, and support for atomic file replacement, then try again.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. I couldn't save task data to ./data/kachow.txt. No changes were applied. Check file permissions, available disk space, and support for atomic file replacement, then try again.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. I couldn't save task data to ./data/kachow.txt. No changes were applied. Check file permissions, available disk space, and support for atomic file replacement, then try again.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. I couldn't save task data to ./data/kachow.txt. No changes were applied. Check file permissions, available disk space, and support for atomic file replacement, then try again.
+    ____________________________________________________________
+    ____________________________________________________________
+    Pit stop, buddy! Let's get you rolling. I couldn't save task data to ./data/kachow.txt. No changes were applied. Check file permissions, available disk space, and support for atomic file replacement, then try again.
+    ____________________________________________________________
+    ____________________________________________________________
+    Crew chief's clipboard! Here are all your tasks, from first lap to finish line:
+    1.[T][X] read book
+    2.[D][ ] return book (by: Jun 06 2019, 2:00 PM)
+    3.[E][ ] project meeting (from: Aug 06 2019, 2:00 PM to: Aug 06 2019, 4:00 PM)
+    4.[T][X] join sports club
     ____________________________________________________________
     ____________________________________________________________
     Time to refuel at Flo's. Rest those tires, buddy. Ka-chow!

@@ -1,13 +1,17 @@
 #!/bin/sh
 
-# Run Kachow outside the repository so its persistent data cannot leak between UI cases.
+# Copy fixtures into a disposable directory so even write-failure tests protect repository data.
 classes="$PWD/_temp/ui-test-console-classes"
+test_directory=$(mktemp -d "${TMPDIR:-/tmp}/kachow-ui-test.XXXXXX") || exit 1
+trap 'chmod -R u+w "$test_directory"; rm -rf "$test_directory"' EXIT
+trap 'exit 1' HUP INT TERM
 
-if [ "$#" -eq 1 ]; then
-    test_directory="$PWD/$1"
-else
-    test_directory=$(mktemp -d "${TMPDIR:-/tmp}/kachow-ui-test.XXXXXX") || exit 1
+if [ "$#" -ge 1 ]; then
+    cp -R "$PWD/$1/." "$test_directory" || exit 1
+fi
+if [ "${2:-}" = "--read-only" ]; then
+    chmod a-w "$test_directory/data/kachow.txt" || exit 1
 fi
 
 cd "$test_directory" || exit 1
-exec java -cp "$classes" com.benthecat.kachow.Kachow
+java -cp "$classes" com.benthecat.kachow.Kachow

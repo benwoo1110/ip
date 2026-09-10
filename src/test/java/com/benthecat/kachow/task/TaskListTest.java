@@ -125,9 +125,35 @@ class TaskListTest {
         assertTrue(tasks.findByDescription("race").isEmpty());
     }
 
+    @Test
+    void addAndReplace_duplicateDetails_preserveExistingTasks() throws KachowException {
+        TaskList tasks = new TaskList();
+        Todo first = new Todo("read book", true);
+        tasks.add(first);
+        tasks.add(new Todo("write book"));
+
+        assertThrows(KachowException.class, () -> tasks.add(new Todo(" READ   BOOK ")));
+        assertThrows(KachowException.class, () -> tasks.replace(2, new Todo("read book")));
+        assertSame(first, tasks.get(1));
+        assertEquals("write book", tasks.get(2).getDescription());
+        tasks.replace(1, new Todo("read book", true));
+        tasks.add(new Deadline("read book", LocalDate.of(2026, 9, 10)));
+        tasks.add(new Deadline("read book", LocalDate.of(2026, 9, 11)));
+        assertThrows(KachowException.class, () -> tasks.add(
+                new Deadline("READ BOOK", LocalDate.of(2026, 9, 10), true)));
+        assertEquals(4, tasks.getSize());
+    }
+
+    @Test
+    void get_nonpositiveNumbers_throwsRecoverableError() {
+        TaskList tasks = new TaskList(List.of(new Todo("read book")));
+        assertThrows(KachowException.class, () -> tasks.get(0));
+        assertThrows(KachowException.class, () -> tasks.get(-1));
+    }
+
     /** Verifies that callers cannot mutate the task collection through its snapshot. */
     @Test
-    void getTasks_returnedSnapshotCannotMutateTaskCollection() {
+    void getTasks_returnedSnapshotCannotMutateTaskCollection() throws KachowException {
         TaskList tasks = new TaskList();
         tasks.add(new Todo("read book"));
 

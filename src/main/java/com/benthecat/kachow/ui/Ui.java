@@ -141,6 +141,7 @@ public class Ui {
     /** Displays a loading error while allowing the application to start with an empty list. */
     public void showLoadingError(KachowException exception) {
         showError(exception.getMessage());
+        showLines("Saving is disabled. Repair the task file or restore a backup, then restart Kachow.");
     }
 
     /** Displays the farewell and its closing divider. */
