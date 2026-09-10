@@ -2,7 +2,8 @@
 
 ## Test setup
 
-- Runtime: Java 25.
+- Runtime: Java 25. See [automated-tests.md](automated-tests.md) for JUnit coverage and
+  [gui-test-plan.md](gui-test-plan.md) for manual JavaFX checks.
 - Personality: expect Kachow's Radiator Springs pit-crew voice in both console and GUI replies.
   The cases below cover greetings, every task operation, empty results, and recoverable errors.
   Task counts describe all stored tasks, including completed tasks; responses use fixed wording.
@@ -1405,5 +1406,37 @@ bye
     ____________________________________________________________
     ____________________________________________________________
     Time to refuel at Flo's. Rest those tires, buddy. Ka-chow!
+    ____________________________________________________________
+```
+
+## Test Case: UI-19 Exit cleanly when standard input is already closed
+
+### Aim
+
+Verify that an empty input stream prints the complete greeting and exits successfully,
+without a spurious command error or farewell. JUnit also checks that no data file is created.
+
+### Command
+
+```json
+["test/run-kachow-isolated.sh"]
+```
+
+### Inputs
+
+```text
+```
+
+### Expected output
+
+```text
+    ____________________________________________________________
+     _  __          _                    
+    | |/ /__ _  ___| |__   _____      __
+    | ' // _` |/ __| '_ \ / _ \ \ /\ / /
+    | . \ (_| | (__| | | | (_) \ V  V / 
+    |_|\_\__,_|\___|_| |_|\___/ \_/\_/  
+    Ka-chow! I'm Kachow, your Radiator Springs pit-crew pal.
+    You bring the big dreams; I'll keep the tasks tuned up. Try list, or todo win the Piston Cup.
     ____________________________________________________________
 ```

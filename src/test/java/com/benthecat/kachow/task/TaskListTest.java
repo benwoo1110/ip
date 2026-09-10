@@ -8,7 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -162,4 +164,53 @@ class TaskListTest {
         assertThrows(UnsupportedOperationException.class, () -> snapshot.add(new Todo("write book")));
         assertEquals(1, tasks.getSize());
     }
+    @Test
+    void mutations_invalidNumbers_preserveListAndCompletionForEveryOperation() {
+        Todo original = new Todo("read", true);
+        TaskList tasks = new TaskList(List.of(original));
+        for (int number : List.of(Integer.MIN_VALUE, -1, 0, 2, Integer.MAX_VALUE)) {
+            assertThrows(KachowException.class, () -> tasks.get(number));
+            assertThrows(KachowException.class, () -> tasks.mark(number));
+            assertThrows(KachowException.class, () -> tasks.unmark(number));
+            assertThrows(KachowException.class, () -> tasks.delete(number));
+            assertThrows(KachowException.class, () -> tasks.replace(number, new Todo("replacement")));
+            assertEquals(List.of(original), tasks.getTasks());
+            assertTrue(original.isDone());
+        }
+    }
+
+    @Test
+    void constructorAndSnapshot_collectionCopies_preserveMembershipAcrossLaterMutations() throws KachowException {
+        Todo original = new Todo("read");
+        List<Task> source = new ArrayList<>(List.of(original));
+        TaskList tasks = new TaskList(source);
+        source.clear();
+        List<Task> snapshot = tasks.getTasks();
+        tasks.add(new Todo("write"));
+        assertEquals(List.of(original), snapshot);
+        assertEquals(2, tasks.getSize());
+        tasks.delete(2);
+        tasks.delete(1);
+        assertTrue(tasks.isEmpty());
+        assertEquals(List.of(original), snapshot);
+        assertTrue(tasks.findByDescription("read").isEmpty());
+        assertTrue(tasks.findOn(LocalDate.of(2026, 9, 11)).isEmpty());
+        tasks.add(new Todo("new"));
+        assertFalse(tasks.isEmpty());
+        assertEquals("new", tasks.get(1).getDescription());
+    }
+
+    @Test
+    void findByDescription_turkishDefaultLocale_usesStableCaseFolding() {
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            TaskList tasks = new TaskList(List.of(new Todo("WRITE report")));
+            assertEquals(List.of(1), tasks.findByDescription("write").stream()
+                    .map(TaskList.NumberedTask::number).toList());
+        } finally {
+            Locale.setDefault(original);
+        }
+    }
+
 }

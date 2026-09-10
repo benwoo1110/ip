@@ -179,4 +179,75 @@ class StorageTest {
         assertEquals("T | 0 | original\n", Files.readString(target));
     }
 
+    @Test
+    void load_invalidRecordShapes_reportsPhysicalLineAndKeepsOriginalBytes() throws IOException {
+        Path dataFile = tempDirectory.resolve("kachow.txt");
+        for (String record : List.of("broken", "T | 0", "T | 0 | task | extra", "D | 0 | task",
+                "D | 0 | task | 2026-09-11 | extra", "E | 0 | task | 2026-09-11",
+                "E | 0 | task | 2026-09-11 | 2026-09-12 | extra", "T | 2 | task",
+                "D | 0 | task | ", "E | 0 | task | tomorrow | 2026-09-12")) {
+            String original = "T | 0 | valid\n\n" + record + "\n";
+            Files.writeString(dataFile, original);
+            KachowException exception = assertThrows(KachowException.class, () -> new Storage(dataFile).load());
+            assertEquals("Task data on line 3 of " + dataFile + " is invalid.", exception.getMessage());
+            assertEquals(original, Files.readString(dataFile));
+        }
+    }
+
+    @Test
+    void saveAndLoad_unicodeDateOnlyAndTimedTasks_preservesEveryDetail() throws IOException, KachowException {
+        Path dataFile = tempDirectory.resolve("nested/data/kachow.txt");
+        List<Task> originals = List.of(new Todo("阅读 📚 & C++/Java"),
+                new Deadline("report", LocalDateTime.of(2026, 9, 11, 18, 30), true),
+                new Event("conference", DateTimeParser.parse("2026-09-11"),
+                        DateTimeParser.parse("2026-09-13"), true));
+        new Storage(dataFile).save(originals);
+        List<Task> loaded = new Storage(dataFile).load();
+        assertEquals(originals.stream().map(Task::getStatusText).toList(),
+                loaded.stream().map(Task::getStatusText).toList());
+        assertEquals("T | 0 | 阅读 📚 & C++/Java\nD | 1 | report | 2026-09-11T18:30\n"
+                + "E | 1 | conference | 2026-09-11 | 2026-09-13\n", Files.readString(dataFile));
+    }
+
+    @Test
+    void save_emptyList_replacesExistingRecordsWithEmptyReadableFile() throws IOException, KachowException {
+        Path dataFile = tempDirectory.resolve("kachow.txt");
+        Storage storage = new Storage(dataFile);
+        storage.save(List.of(new Todo("original")));
+        storage.save(List.of());
+        assertEquals("", Files.readString(dataFile));
+        assertTrue(new Storage(dataFile).load().isEmpty());
+    }
+
+    @Test
+    void load_repairedFile_reenablesSavingAfterExplicitReload() throws IOException, KachowException {
+        Path dataFile = tempDirectory.resolve("kachow.txt");
+        Files.writeString(dataFile, "broken\n");
+        Storage storage = new Storage(dataFile);
+        assertThrows(KachowException.class, storage::load);
+        Files.writeString(dataFile, "T | 1 | repaired\n");
+        assertEquals("[T][X] repaired", storage.load().getFirst().getStatusText());
+        storage.save(List.of(new Todo("new")));
+        assertEquals("T | 0 | new\n", Files.readString(dataFile));
+    }
+
+    @Test
+    void save_fileAppearsAfterEmptyLoad_preservesNewExternalData() throws IOException, KachowException {
+        Path dataFile = tempDirectory.resolve("kachow.txt");
+        Storage storage = new Storage(dataFile);
+        assertTrue(storage.load().isEmpty());
+        Files.writeString(dataFile, "T | 1 | external\n");
+        assertThrows(KachowException.class, () -> storage.save(List.of(new Todo("new"))));
+        assertEquals("T | 1 | external\n", Files.readString(dataFile));
+    }
+
+    @Test
+    void load_crlfAndBlankLines_keepsRecordOrderAndNormalizesDescriptions() throws IOException, KachowException {
+        Path dataFile = tempDirectory.resolve("kachow.txt");
+        Files.writeString(dataFile, "\r\nT | 0 | first\r\n  \r\nT | 1 |  second   task \r\n");
+        List<Task> tasks = new Storage(dataFile).load();
+        assertEquals(List.of("[T][ ] first", "[T][X] second task"),
+                tasks.stream().map(Task::getStatusText).toList());
+    }
+
 }

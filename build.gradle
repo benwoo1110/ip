@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'checkstyle'
+    id 'jacoco'
     id 'com.gradleup.shadow' version '9.5.1'
 }
 
@@ -72,4 +73,24 @@ shadowJar {
 
 run {
     standardInput = System.in
+}
+
+// Version 0.8.14 supports the Java 25 bytecode used by this project.
+jacoco {
+    toolVersion = '0.8.14'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        html.required = true
+        xml.required = true
+    }
+    // Keep shared application logic and console UI in the report; inspect JavaFX visually.
+    classDirectories.setFrom(sourceSets.main.output.classesDirs.asFileTree.matching {
+        exclude 'com/benthecat/kachow/ui/fx/**'
+        exclude 'com/benthecat/kachow/ui/printer/FxPrinter.class'
+        exclude 'com/benthecat/kachow/FxMain.class'
+        exclude 'com/benthecat/kachow/Launcher.class'
+    })
 }

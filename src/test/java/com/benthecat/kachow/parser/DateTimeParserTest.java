@@ -5,7 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -63,4 +67,72 @@ class DateTimeParserTest {
         assertEquals("2019-10-15", DateTimeParser.formatForStorage(dateOnly));
         assertEquals("2019-12-02T18:00", DateTimeParser.formatForStorage(dateTime));
     }
+    @Test
+    void parse_slashDateAmbiguities_followsDocumentedPrecedence() {
+        assertEquals(LocalDate.of(2026, 12, 2), DateTimeParser.parse("2/12/2026").date());
+        assertEquals(LocalDate.of(2026, 2, 12), DateTimeParser.parse("02/12/2026").date());
+        assertEquals(LocalDate.of(2026, 2, 13), DateTimeParser.parse("13/02/2026").date());
+        assertEquals(LocalDate.of(2026, 12, 31), DateTimeParser.parse("12/31/2026").date());
+        assertEquals(LocalDate.of(2026, 1, 31), DateTimeParser.parse("1/31/2026").date());
+        assertEquals(LocalDate.of(2000, 2, 29), DateTimeParser.parse("2000-02-29").date());
+    }
+
+    @Test
+    void parse_everyClockSyntax_preservesMidnightNoonAndMinuteBoundaries() {
+        LocalDate date = LocalDate.of(2026, 9, 11);
+        for (String time : List.of("1830", "18:30", "6:30pm", "6:30 PM", "6:30 pM")) {
+            assertEquals(date.atTime(18, 30), DateTimeParser.parse(time, date).toLocalDateTime(), time);
+            assertEquals(date.atTime(18, 30), DateTimeParser.parse("2026-09-11 " + time).toLocalDateTime());
+        }
+        assertEquals(date.atStartOfDay(), DateTimeParser.parse("12 AM", date).toLocalDateTime());
+        assertEquals(date.atTime(12, 0), DateTimeParser.parse("12pm", date).toLocalDateTime());
+        assertEquals(date.atTime(23, 59), DateTimeParser.parse("2359", date).toLocalDateTime());
+        assertEquals(LocalDate.of(2027, 1, 1), DateTimeParser.parse("2027-01-01", date).date());
+    }
+
+    @Test
+    void parse_invalidCalendarAndClockBoundaries_rejectsInsteadOfRounding() {
+        for (String text : List.of("1900-02-29", "2026-02-29", "2026-04-31", "2026-00-10",
+                "2026-13-01", "2026-01-00", "02/30/2026", "2026-09-11 24:00", "2026-09-11 1260",
+                "2026-09-11 0am", "2026-09-11 13pm", "2026-09-11 12:60 PM", "", " ", "18:30")) {
+            assertThrows(DateTimeParseException.class, () -> DateTimeParser.parse(text), text);
+        }
+        assertThrows(DateTimeParseException.class, () ->
+                DateTimeParser.parse("tomorrow", LocalDate.of(2026, 9, 11)));
+    }
+
+    @Test
+    void formatForStorage_isoPrecision_roundTripsDateTimeWithoutLosingSeconds() {
+        for (String text : List.of("2026-09-11", "2026-09-11T00:00", "2026-09-11T18:30:45",
+                "2026-09-11T18:30:45.123456789")) {
+            DateTimeParser.ParsedDateTime value = DateTimeParser.parse(text);
+            assertEquals(value, DateTimeParser.parse(DateTimeParser.formatForStorage(value)), text);
+        }
+    }
+
+    @Test
+    void format_nonEnglishDefaultLocale_keepsEnglishDisplayAndParsing() {
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.FRANCE);
+            assertEquals("Sep 11 2026, 6:30 PM", DateTimeParser.format(DateTimeParser.parse("2026-09-11 6:30 PM")));
+            assertEquals("Sep 11 2026", DateTimeParser.format(LocalDate.of(2026, 9, 11)));
+        } finally {
+            Locale.setDefault(original);
+        }
+    }
+
+    @Test
+    void parsedDateTime_optionalTime_preservesPrecisionAndRequiresNonNullComponents() {
+        LocalDate date = LocalDate.of(2026, 9, 11);
+        DateTimeParser.ParsedDateTime dateOnly = new DateTimeParser.ParsedDateTime(date);
+        assertEquals(Optional.empty(), dateOnly.time());
+        assertEquals(date.atStartOfDay(), dateOnly.toLocalDateTime());
+        DateTimeParser.ParsedDateTime timed = new DateTimeParser.ParsedDateTime(
+                date, Optional.of(LocalTime.of(10, 30)));
+        assertEquals(date.atTime(10, 30), timed.toLocalDateTime());
+        assertThrows(NullPointerException.class, () -> new DateTimeParser.ParsedDateTime(null, Optional.empty()));
+        assertThrows(NullPointerException.class, () -> new DateTimeParser.ParsedDateTime(date, null));
+    }
+
 }

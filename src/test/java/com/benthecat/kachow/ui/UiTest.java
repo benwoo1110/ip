@@ -147,6 +147,42 @@ class UiTest {
                 getCapturedOutput());
     }
 
+    @Test
+    void showTaskAdded_singularAndPluralCounts_printsCompleteConfirmations() {
+        userInterface.showTaskAdded(new Todo("first"), 1);
+        userInterface.showTaskAdded(new Todo("second"), 2);
+        assertEquals(joinLines(
+                "    Green light, buddy! I've rolled this task onto the starting grid:",
+                "      [T][ ] first", "    Your garage now holds 1 task.",
+                "    Green light, buddy! I've rolled this task onto the starting grid:",
+                "      [T][ ] second", "    Your garage now holds 2 tasks."), getCapturedOutput());
+    }
+
+    @Test
+    void showTaskDeleted_remainingCounts_printsSingularPluralAndEmptyConfirmations() {
+        for (int count : List.of(2, 1, 0)) {
+            userInterface.showTaskDeleted(new Todo("removed", true), count);
+        }
+        assertEquals(joinLines(
+                "    Mater's towing this one off the roster. Task deleted:",
+                "      [T][X] removed", "    Your garage now holds 2 tasks.",
+                "    Mater's towing this one off the roster. Task deleted:",
+                "      [T][X] removed", "    Your garage now holds 1 task.",
+                "    Mater's towing this one off the roster. Task deleted:",
+                "      [T][X] removed", "    Your garage now holds 0 tasks."), getCapturedOutput());
+    }
+
+    @Test
+    void showTaskMarkedAndUnmarked_printsCompleteStatusMessages() {
+        userInterface.showTaskMarked(new Todo("read", true));
+        userInterface.showTaskUnmarked(new Todo("read"));
+        assertEquals(joinLines(
+                "    Ka-chow! That's Piston Cup spirit! This task is marked done:",
+                "      [T][X] read", "    Doc Hudson would be proud. One task at a time, one lap closer.",
+                "    Another practice lap! Even Lightning needs those. This task is marked not done:",
+                "      [T][ ] read"), getCapturedOutput());
+    }
+
     private String getCapturedOutput() {
         userInterface.outputData();
         return capturedOutputStream.toString(StandardCharsets.UTF_8);
