@@ -11,7 +11,7 @@ import com.benthecat.kachow.task.TaskList;
 import com.benthecat.kachow.ui.printer.Printer;
 
 /**
- * Handles all console input and user-facing output for Kachow.
+ * Handles console input and gives both interfaces Kachow's Cars-inspired pit-crew voice.
  */
 public class Ui {
     private static final String UI_DIVIDER = "____________________________________________________________";
@@ -34,8 +34,8 @@ public class Ui {
     public void showWelcome() {
         showLines(
                 UI_BANNER,
-                "Ka-chow! I'm Kachow, the fastest chatbot on the track.",
-                "What can I do for you before the next lap?");
+                "Ka-chow! I'm Kachow, your Radiator Springs pit-crew pal.",
+                "You bring the big dreams; I'll keep the tasks tuned up. Try list, or todo win the Piston Cup.");
     }
 
 
@@ -57,10 +57,10 @@ public class Ui {
     /** Displays the complete task list. */
     public void showTaskList(TaskList taskList) {
         if (taskList.isEmpty()) {
-            showLines("The starting grid is empty. Add a racer with todo, deadline, or event.");
+            showLines("Quiet as Radiator Springs before sunrise! Add a task with todo, deadline, or event.");
             return;
         }
-        showLines("Rev up! Here are the tasks in today's race:");
+        showLines("Crew chief's clipboard! Here are all your tasks, from first lap to finish line:");
         List<Task> tasks = taskList.getTasks();
         for (int i = 0; i < tasks.size(); i++) {
             showLines((i + 1) + "." + tasks.get(i).getStatusText());
@@ -70,10 +70,11 @@ public class Ui {
     /** Displays deadlines and events occurring on a particular date. */
     public void showTasksOn(LocalDate date, List<TaskList.NumberedTask> matchingTasks) {
         if (matchingTasks.isEmpty()) {
-            showLines("No deadlines or events are scheduled for " + DateTimeParser.format(date) + ".");
+            showLines("Cruise through Radiator Springs! No deadlines or events on "
+                    + DateTimeParser.format(date) + ".");
             return;
         }
-        showLines("Rev up! Here are the deadlines and events on " + DateTimeParser.format(date) + ":");
+        showLines("Sally's road map! Here are the deadlines and events on " + DateTimeParser.format(date) + ":");
         for (TaskList.NumberedTask numberedTask : matchingTasks) {
             showLines(numberedTask.number() + "." + numberedTask.task().getStatusText());
         }
@@ -82,10 +83,11 @@ public class Ui {
     /** Displays tasks whose descriptions match a search keyword. */
     public void showSearchResults(String keyword, List<TaskList.NumberedTask> matchingTasks) {
         if (matchingTasks.isEmpty()) {
-            showLines("No racers matched \"" + keyword + "\". Try another search lap.");
+            showLines("Mater checked every back road: no tasks matched \""
+                    + keyword + "\". Try another keyword, buddy.");
             return;
         }
-        showLines("Ka-chow! These racers matched your search:");
+        showLines("Mater found 'em! Here are the tasks that match your search:");
         for (TaskList.NumberedTask numberedTask : matchingTasks) {
             showLines(numberedTask.number() + "." + numberedTask.task().getStatusText());
         }
@@ -93,46 +95,47 @@ public class Ui {
 
     /** Displays confirmation after a task is added. */
     public void showTaskAdded(Task task, int taskCount) {
-        String racerLabel = taskCount == 1 ? " racer" : " racers";
+        String taskLabel = taskCount == 1 ? " task" : " tasks";
         showLines(
-                "Ka-chow! A new racer joined the starting grid:",
+                "Green light, buddy! I've rolled this task onto the starting grid:",
                 "  " + task.getStatusText(),
-                "Now you've got " + taskCount + racerLabel + " ready to roll.");
+                "Your garage now holds " + taskCount + taskLabel + ".");
     }
 
     /** Displays confirmation after a task is marked as complete. */
     public void showTaskMarked(Task task) {
         showLines(
-                "Ka-chow! This task crossed the finish line:",
-                "  " + task.getStatusText());
+                "Ka-chow! That's Piston Cup spirit! This task is marked done:",
+                "  " + task.getStatusText(),
+                "Doc Hudson would be proud. One task at a time, one lap closer.");
     }
 
     /** Displays confirmation after a task is marked as incomplete. */
     public void showTaskUnmarked(Task task) {
         showLines(
-                "Back to the starting grid! This task is not done yet:",
+                "Another practice lap! Even Lightning needs those. This task is marked not done:",
                 "  " + task.getStatusText());
     }
 
     /** Displays confirmation after one task detail is edited. */
     public void showTaskEdited(Task task) {
         showLines(
-                "Ka-chow! This racer's details are updated:",
+                "Pit stop complete! Guido's updated this task's details:",
                 "  " + task.getStatusText());
     }
 
     /** Displays confirmation after a task is deleted. */
     public void showTaskDeleted(Task task, int taskCount) {
-        String racerLabel = taskCount == 1 ? " racer" : " racers";
+        String taskLabel = taskCount == 1 ? " task" : " tasks";
         showLines(
-                "Ka-chow! This racer has left the track:",
+                "Mater's towing this one off the roster. Task deleted:",
                 "  " + task.getStatusText(),
-                "Now you've got " + taskCount + racerLabel + " still in the race.");
+                "Your garage now holds " + taskCount + taskLabel + ".");
     }
 
     /** Displays a validation or persistence error. */
     public void showError(String message) {
-        showLines("Pit stop! " + message);
+        showLines("Pit stop, buddy! Let's get you rolling. " + message);
     }
 
     /** Displays a loading error while allowing the application to start with an empty list. */
@@ -142,7 +145,7 @@ public class Ui {
 
     /** Displays the farewell and its closing divider. */
     public void showGoodbye() {
-        showLines("Race complete! Catch you on the next lap. Ka-chow!");
+        showLines("Time to refuel at Flo's. Rest those tires, buddy. Ka-chow!");
         showDivider();
     }
 

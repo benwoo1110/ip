@@ -48,7 +48,7 @@ class UiTest {
         userInterface.showTaskList(new TaskList());
 
         assertEquals(joinLines(
-                "    The starting grid is empty. Add a racer with todo, deadline, or event."),
+                "    Quiet as Radiator Springs before sunrise! Add a task with todo, deadline, or event."),
                 getCapturedOutput());
     }
 
@@ -66,7 +66,7 @@ class UiTest {
         userInterface.showTaskList(tasks);
 
         assertEquals(joinLines(
-                "    Rev up! Here are the tasks in today's race:",
+                "    Crew chief's clipboard! Here are all your tasks, from first lap to finish line:",
                 "    1.[T][X] read book",
                 "    2.[D][ ] return book (by: Jun 06 2019)",
                 "    3.[E][ ] project meeting (from: Aug 06 2019, 2:00 PM"
@@ -89,7 +89,7 @@ class UiTest {
         userInterface.showTasksOn(LocalDate.of(2019, 12, 3), matchingTasks);
 
         assertEquals(joinLines(
-                "    Rev up! Here are the deadlines and events on Dec 03 2019:",
+                "    Sally's road map! Here are the deadlines and events on Dec 03 2019:",
                 "    3.[D][ ] submit report (by: Dec 03 2019, 9:00 AM)",
                 "    4.[E][ ] conference (from: Dec 03 2019, 11:00 PM"
                         + " to: Dec 04 2019, 1:00 AM)"),
@@ -101,7 +101,7 @@ class UiTest {
     void showTasksOn_noMatches_printsDateSpecificMessage() {
         userInterface.showTasksOn(LocalDate.of(2019, 12, 5), List.of());
 
-        assertEquals(joinLines("    No deadlines or events are scheduled for Dec 05 2019."),
+        assertEquals(joinLines("    Cruise through Radiator Springs! No deadlines or events on Dec 05 2019."),
                 getCapturedOutput());
     }
 
@@ -115,7 +115,7 @@ class UiTest {
         userInterface.showSearchResults("book", matchingTasks);
 
         assertEquals(joinLines(
-                "    Ka-chow! These racers matched your search:",
+                "    Mater found 'em! Here are the tasks that match your search:",
                 "    1.[T][X] read book",
                 "    3.[D][ ] return book (by: Jun 06 2019)"),
                 getCapturedOutput());
@@ -125,7 +125,8 @@ class UiTest {
     void showSearchResults_noMatches_printsKeywordSpecificMessage() {
         userInterface.showSearchResults("tires", List.of());
 
-        assertEquals(joinLines("    No racers matched \"tires\". Try another search lap."),
+        assertEquals(joinLines("    Mater checked every back road: no tasks matched \"tires\"."
+                + " Try another keyword, buddy."),
                 getCapturedOutput());
     }
 
@@ -140,7 +141,7 @@ class UiTest {
         userInterface.showTaskEdited(event);
 
         assertEquals(joinLines(
-                "    Ka-chow! This racer's details are updated:",
+                "    Pit stop complete! Guido's updated this task's details:",
                 "      [E][ ] project meeting (from: Aug 06 2026, 2:00 PM"
                         + " to: Aug 06 2026, 5:00 PM)"),
                 getCapturedOutput());

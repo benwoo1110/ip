@@ -1,6 +1,9 @@
 # Kachow
 
-Kachow is a chatbot project developed as part of an introductory software engineering course. Given below are instructions on how to use it.
+Kachow is your Cars-inspired task companion, developed as part of an introductory software engineering course.
+Think of it as a cheerful Radiator Springs pit-crew pal: Mater scouts out your tasks, Guido tunes up edits,
+and completed tasks earn a Piston Cup celebration. It cheers you on through practice laps and pit stops,
+while keeping task details and command guidance clear. Given below are instructions on how to use it.
 
 ## Setting up in Intellij
 
@@ -21,34 +24,34 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
        | ' // _` |/ __| '_ \ / _ \ \ /\ / /
        | . \ (_| | (__| | | | (_) \ V  V /
        |_|\_\__,_|\___|_| |_|\___/ \_/\_/
-       Ka-chow! I'm Kachow, the fastest chatbot on the track.
-       What can I do for you before the next lap?
+       Ka-chow! I'm Kachow, your Radiator Springs pit-crew pal.
+       You bring the big dreams; I'll keep the tasks tuned up. Try list, or todo win the Piston Cup.
        ____________________________________________________________
 
    todo read book
        ____________________________________________________________
-       Ka-chow! A new racer joined the starting grid:
+       Green light, buddy! I've rolled this task onto the starting grid:
          [T][ ] read book
-       Now you've got 1 racer ready to roll.
+       Your garage now holds 1 task.
        ____________________________________________________________
 
    deadline return book /by 2/12/2019 1800
        ____________________________________________________________
-       Ka-chow! A new racer joined the starting grid:
+       Green light, buddy! I've rolled this task onto the starting grid:
          [D][ ] return book (by: Dec 02 2019, 6:00 PM)
-       Now you've got 2 racers ready to roll.
+       Your garage now holds 2 tasks.
        ____________________________________________________________
 
    event project meeting /from 3/12/2019 1400 /to 1600
        ____________________________________________________________
-       Ka-chow! A new racer joined the starting grid:
+       Green light, buddy! I've rolled this task onto the starting grid:
          [E][ ] project meeting (from: Dec 03 2019, 2:00 PM to: Dec 03 2019, 4:00 PM)
-       Now you've got 3 racers ready to roll.
+       Your garage now holds 3 tasks.
        ____________________________________________________________
 
    list
        ____________________________________________________________
-       Rev up! Here are the tasks in today's race:
+       Crew chief's clipboard! Here are all your tasks, from first lap to finish line:
        1.[T][ ] read book
        2.[D][ ] return book (by: Dec 02 2019, 6:00 PM)
        3.[E][ ] project meeting (from: Dec 03 2019, 2:00 PM to: Dec 03 2019, 4:00 PM)
@@ -56,13 +59,14 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 
    mark 2
        ____________________________________________________________
-       Ka-chow! This task crossed the finish line:
+       Ka-chow! That's Piston Cup spirit! This task is marked done:
          [D][X] return book (by: Dec 02 2019, 6:00 PM)
+       Doc Hudson would be proud. One task at a time, one lap closer.
        ____________________________________________________________
 
    list
        ____________________________________________________________
-       Rev up! Here are the tasks in today's race:
+       Crew chief's clipboard! Here are all your tasks, from first lap to finish line:
        1.[T][ ] read book
        2.[D][X] return book (by: Dec 02 2019, 6:00 PM)
        3.[E][ ] project meeting (from: Dec 03 2019, 2:00 PM to: Dec 03 2019, 4:00 PM)
@@ -70,13 +74,13 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 
    unmark 2
        ____________________________________________________________
-       Back to the starting grid! This task is not done yet:
+       Another practice lap! Even Lightning needs those. This task is marked not done:
          [D][ ] return book (by: Dec 02 2019, 6:00 PM)
        ____________________________________________________________
 
    bye
        ____________________________________________________________
-       Race complete! Catch you on the next lap. Ka-chow!
+       Time to refuel at Flo's. Rest those tires, buddy. Ka-chow!
        ____________________________________________________________
    ```
 
