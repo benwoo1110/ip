@@ -7,6 +7,7 @@
 - Personality: expect Kachow's Radiator Springs pit-crew voice in both console and GUI replies.
   The cases below cover greetings, every task operation, empty results, and recoverable errors.
   Task counts describe all stored tasks, including completed tasks; responses use fixed wording.
+  The GUI error-presentation flag must not alter console output; the same cases verify this after styling changes.
 - Compile the console application before testing with `javac -d _temp/ui-test-console-classes $(find src/main/java
   -name '*.java' ! -path '*/ui/fx/*' ! -name 'FxMain.java' ! -name 'Launcher.java' ! -name 'FxPrinter.java'
   -print)`. This deliberately excludes all JavaFX components from the console UI test classpath.

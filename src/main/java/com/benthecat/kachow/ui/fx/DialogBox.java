@@ -61,4 +61,11 @@ public class DialogBox extends HBox {
     public static DialogBox createKachowDialog(String text) {
         return new DialogBox(text, KACHOW_IMAGE).formatAsKachowDialog();
     }
+
+    /** Creates an attention-grabbing dialog containing an error from Kachow. */
+    public static DialogBox createErrorDialog(String text) {
+        DialogBox dialogBox = new DialogBox(text, KACHOW_IMAGE).formatAsKachowDialog();
+        dialogBox.dialogText.getStyleClass().add("error-label");
+        return dialogBox;
+    }
 }

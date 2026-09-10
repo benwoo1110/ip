@@ -2,16 +2,27 @@
     -fx-font-family: "Courier New";
     -fx-font-weight: bold;
     -fx-font-size: 13px;
-    -fx-background-color: linear-gradient(to bottom right, #00ffbf, #00ddff);
-    -fx-border-color: #d55e00 #009e73 #cc79a7 #0072b2;
+    -fx-text-fill: white;
+    -fx-background-color: linear-gradient(to bottom right, #9a4d2b, #652f1e);
+    -fx-border-color: #30343a;
     -fx-border-width: 2px;
     -fx-background-radius: 1em 1em 0 1em;
     -fx-border-radius: 1em 1em 0 1em;
 }
 
 .reply-label {
+    -fx-background-color: linear-gradient(to bottom right, #df3a35, #a71920);
+    -fx-border-color: #f4b400;
     -fx-background-radius: 1em 1em 1em 0;
     -fx-border-radius: 1em 1em 1em 0;
+}
+
+.error-label {
+    -fx-background-color: linear-gradient(to bottom right, #ffd85a, #f4a300);
+    -fx-border-color: #c62828;
+    -fx-border-width: 3px;
+    -fx-text-fill: #30343a;
+    -fx-effect: dropshadow(gaussian, rgba(198, 40, 40, 0.35), 8, 0.35, 0, 2);
 }
 
 #displayPicture {

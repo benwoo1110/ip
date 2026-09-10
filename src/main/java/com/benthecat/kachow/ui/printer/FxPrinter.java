@@ -11,6 +11,7 @@ public class FxPrinter implements Printer {
 
     private final VBox dialogContainer;
     private final StringBuilder data = new StringBuilder();
+    private boolean isErrorResponse;
 
     /**
      * Creates a printer that appends responses to the given dialog container.
@@ -27,8 +28,17 @@ public class FxPrinter implements Printer {
     }
 
     @Override
+    public void markResponseAsError() {
+        isErrorResponse = true;
+    }
+
+    @Override
     public void outputData() {
-        dialogContainer.getChildren().add(DialogBox.createKachowDialog(data.toString()));
+        DialogBox dialogBox = isErrorResponse
+                ? DialogBox.createErrorDialog(data.toString())
+                : DialogBox.createKachowDialog(data.toString());
+        dialogContainer.getChildren().add(dialogBox);
         data.setLength(0);
+        isErrorResponse = false;
     }
 }

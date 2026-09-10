@@ -1,12 +1,14 @@
 package com.benthecat.kachow.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -19,9 +21,10 @@ import com.benthecat.kachow.task.Event;
 import com.benthecat.kachow.task.TaskList;
 import com.benthecat.kachow.task.Todo;
 import com.benthecat.kachow.ui.printer.ConsolePrinter;
+import com.benthecat.kachow.ui.printer.Printer;
 
 /**
- * Tests the complete console fragments used to list tasks and lookup matches.
+ * Tests console fragments and response presentation signals produced by the UI.
  */
 class UiTest {
     private final ByteArrayOutputStream capturedOutputStream = new ByteArrayOutputStream();
@@ -183,6 +186,17 @@ class UiTest {
                 "      [T][ ] read"), getCapturedOutput());
     }
 
+    @Test
+    void showError_validationError_marksResponseAsError() {
+        RecordingPrinter recordingPrinter = new RecordingPrinter();
+
+        new Ui(recordingPrinter).showError("That command took a wrong turn.");
+
+        assertTrue(recordingPrinter.isErrorResponse);
+        assertEquals(List.of("Pit stop, buddy! Let's get you rolling. That command took a wrong turn."),
+                recordingPrinter.messages);
+    }
+
     private String getCapturedOutput() {
         userInterface.outputData();
         return capturedOutputStream.toString(StandardCharsets.UTF_8);
@@ -190,5 +204,26 @@ class UiTest {
 
     private String joinLines(String... lines) {
         return String.join(System.lineSeparator(), lines) + System.lineSeparator();
+    }
+
+    /** Captures response text and its presentation flag without starting JavaFX. */
+    private static class RecordingPrinter implements Printer {
+        private final List<String> messages = new ArrayList<>();
+        private boolean isErrorResponse;
+
+        @Override
+        public void addData(String message) {
+            messages.add(message);
+        }
+
+        @Override
+        public void markResponseAsError() {
+            isErrorResponse = true;
+        }
+
+        @Override
+        public void outputData() {
+            // This test inspects buffered state before output.
+        }
     }
 }

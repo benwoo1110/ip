@@ -135,6 +135,7 @@ public class Ui {
 
     /** Displays a validation or persistence error. */
     public void showError(String message) {
+        printer.markResponseAsError();
         showLines("Pit stop, buddy! Let's get you rolling. " + message);
     }
 
