@@ -3,6 +3,7 @@ package com.benthecat.kachow.ui.fx;
 import com.benthecat.kachow.Kachow;
 import com.benthecat.kachow.ui.printer.FxPrinter;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -33,13 +34,16 @@ public class MainWindow extends AnchorPane {
     }
 
     /**
-     * Creates two dialog boxes, one echoing user input and the other containing Kachow's reply and then appends them to
-     * the dialog container. Clears the user input after processing.
+     * Displays the user command and Kachow's reply, then clears the input.
+     * Closes the application when the command requests an exit.
      */
     @FXML
     private void handleUserInput() {
         dialogContainer.getChildren().add(DialogBox.createUserDialog(userInput.getText()));
-        kachow.handleUserInput(userInput.getText());
+        boolean shouldContinue = kachow.handleUserInput(userInput.getText());
         userInput.clear();
+        if (!shouldContinue) {
+            Platform.exit();
+        }
     }
 }

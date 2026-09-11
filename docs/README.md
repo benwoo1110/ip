@@ -43,8 +43,8 @@ with your Radiator Springs pit crew. Tasks are saved on your computer and loaded
    java -jar kachow.jar
    ```
 
-4. The chat window opens with Kachow's greeting. Type a command in the box at the bottom and press
-   **Enter** or click **Send**. Replies appear in the conversation above it.
+4. The chat window opens with the title **Kachow** and Kachow's greeting. Type a command in the box
+   at the bottom and press **Enter** or click **Send**. Replies appear in the conversation above it.
 5. Try these commands one at a time:
 
    ```text
@@ -323,14 +323,15 @@ The deadline is now task 1 and the event is task 2.
 
 **Format:** `bye`
 
-Displays the farewell:
+Produces the farewell below and exits. In the GUI, the window closes immediately, so the farewell
+may not remain visible:
 
 ```text
 Time to refuel at Flo's. Rest those tires, buddy. Ka-chow!
 ```
 
-In the console interface, `bye` ends the application. In the graphical interface, it currently prints the
-farewell but leaves the window open; close the window using its close button to exit.
+Enter `bye` to exit either interface. In the GUI, press **Enter** or click **Send** to submit it.
+You can also exit the GUI using the window's close button.
 Successful task changes have already been saved, so no separate save command is needed before closing.
 
 ## Saving and backing up tasks
@@ -400,7 +401,6 @@ For JavaFX startup problems on macOS, check that you selected the JavaFX JDK spe
 
 ## Known limitations
 
-- In the graphical interface, `bye` does not close the window; use the window's close button.
 - There are no reminder notifications, recurring tasks, undo, bulk clear, or task-type conversion commands.
   Dates help you organize and query tasks; they do not trigger alerts.
 - There is no `help` command. Refer to this guide or the command summary below.
@@ -421,6 +421,6 @@ For JavaFX startup problems on macOS, check that you selected the JavaFX JDK spe
 | Mark incomplete | `unmark TASK_NUMBER` | `unmark 1` |
 | Edit details | `edit TASK_NUMBER FIELD VALUE [FIELD VALUE]...` | `edit 2 /by 1900 /description submit final report` |
 | Delete a task | `delete TASK_NUMBER` | `delete 1` |
-| Say goodbye / exit the console | `bye` | `bye` |
+| Exit Kachow | `bye` | `bye` |
 
 For `edit`, use only the fields supported by the selected task type, as listed in [Editing tasks](#editing-tasks).

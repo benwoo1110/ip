@@ -6,7 +6,7 @@ cannot modify the normal `data/kachow.txt` file.
 
 | Check | Action | Expected result |
 | --- | --- | --- |
-| Startup | Launch the application. | Greeting and avatar are visible; the input and Send button have inset spacing and the racing color theme. |
+| Startup | Launch the application. | The title bar reads `Kachow`. Greeting and avatar are visible; the input and Send button have inset spacing and the racing color theme. |
 | Enter submission | Type `todo visual check`, then press Enter. | User message and one task-added reply appear; input clears. |
 | Button submission | Type `list`, then click Send. | Exactly one list reply shows task 1 with its original description. |
 | Validation | Send `event invalid /from 2026-09-11 1000 /to 1000`. | An amber error bubble with a red border and dark text appears; the interface remains responsive. |
@@ -14,6 +14,9 @@ cannot modify the normal `data/kachow.txt` file.
 | Long conversation | Repeat `list` until replies exceed the viewport. | Latest reply scrolls into view; older replies remain accessible. |
 | Resize | Narrow and widen the window. | Input and Send remain accessible; dialog text wraps without overlapping avatars. |
 | Restart | Close the window and relaunch from the same temporary directory; send `list`. | Task 1 is restored as completed. |
+| Invalid exit | Submit `bye extra`. | An error appears and the window remains open. |
+| Enter exit | Submit `bye` with Enter. | The window closes and the application exits. |
+| Button exit and persistence | Relaunch from the same temporary directory, send `list`, then submit `bye` using Send. | Task 1 is still completed; Send closes the window and exits the application. |
 
 ## Latest attempt — 2026-09-11
 

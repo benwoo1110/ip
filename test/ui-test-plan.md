@@ -4,6 +4,8 @@
 
 - Runtime: Java 25. See [automated-tests.md](automated-tests.md) for JUnit coverage and
   [gui-test-plan.md](gui-test-plan.md) for manual JavaFX checks.
+- GUI window titles and closing on `bye` are covered by the GUI plan. Console exit behavior and
+  expected output remain unchanged.
 - Personality: expect Kachow's Radiator Springs pit-crew voice in both console and GUI replies.
   The cases below cover greetings, every task operation, empty results, and recoverable errors.
   Task counts describe all stored tasks, including completed tasks; responses use fixed wording.

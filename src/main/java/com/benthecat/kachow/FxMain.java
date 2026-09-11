@@ -15,6 +15,7 @@ public class FxMain extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/view/MainWindow.fxml"));
         AnchorPane rootPane = fxmlLoader.load();
         Scene scene = new Scene(rootPane);
+        stage.setTitle("Kachow");
         stage.setScene(scene);
         stage.show();
     }
