@@ -228,7 +228,7 @@ class ParserTest {
         assertTrue(renamedTodo.isDone());
         assertEquals("final report", rescheduledDeadline.getDescription());
         assertEquals(LocalDateTime.of(2026, 8, 6, 18, 0),
-                rescheduledDeadline.getByValue().toLocalDateTime());
+                rescheduledDeadline.getDueDateTime().toLocalDateTime());
         assertTrue(rescheduledDeadline.isDone());
     }
 
@@ -334,7 +334,7 @@ class ParserTest {
         Deadline renamed = assertInstanceOf(Deadline.class, parser.applyEdit(deadline,
                 parser.parseEditCommand(parser.parse("edit 1 /description final report"))));
         assertNotSame(deadline, renamed);
-        assertEquals(deadline.getByValue(), renamed.getByValue());
+        assertEquals(deadline.getDueDateTime(), renamed.getDueDateTime());
         assertEquals("report", deadline.getDescription());
         assertTrue(renamed.isDone());
 

@@ -75,7 +75,7 @@ public class Deadline extends Task {
      */
     public Deadline(String description, DateTimeParser.ParsedDateTime by, boolean isDone) {
         super(description, isDone);
-        this.dueDateTime = Objects.requireNonNull(by);
+        dueDateTime = Objects.requireNonNull(by);
     }
 
     /**
@@ -101,7 +101,7 @@ public class Deadline extends Task {
      *
      * @return Parsed due date and optional time.
      */
-    public DateTimeParser.ParsedDateTime getByValue() {
+    public DateTimeParser.ParsedDateTime getDueDateTime() {
         return dueDateTime;
     }
 

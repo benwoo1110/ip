@@ -43,6 +43,11 @@ public class DialogBox extends HBox {
         displayPicture.setImage(image);
     }
 
+    /**
+     * Aligns this dialog to the left, places the portrait before the text, and applies reply styling.
+     *
+     * @return This dialog for use by the factory methods.
+     */
     private DialogBox formatAsKachowDialog() {
         this.setAlignment(Pos.TOP_LEFT);
         ObservableList<Node> children = FXCollections.observableArrayList(this.getChildren());

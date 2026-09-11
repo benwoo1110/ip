@@ -391,7 +391,7 @@ public class Parser {
             throws KachowException {
         requireSupportedFields(editCommand, EditField.DESCRIPTION, EditField.BY);
 
-        DateTimeParser.ParsedDateTime by = deadline.getByValue();
+        DateTimeParser.ParsedDateTime by = deadline.getDueDateTime();
         if (editCommand.changes().containsKey(EditField.BY)) {
             by = parseEditedDeadlineDateTime(editCommand.changes().get(EditField.BY), by.date());
         }

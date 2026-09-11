@@ -67,7 +67,7 @@ public abstract class Task {
         }
         return switch (this) {
             case Todo todo -> true;
-            case Deadline deadline -> deadline.getByValue().equals(((Deadline) other).getByValue());
+            case Deadline deadline -> deadline.getDueDateTime().equals(((Deadline) other).getDueDateTime());
             case Event event -> event.getFrom().equals(((Event) other).getFrom())
                     && event.getTo().equals(((Event) other).getTo());
             default -> false;
@@ -83,7 +83,7 @@ public abstract class Task {
     public Task withDoneStatus(boolean isDone) {
         return switch (this) {
             case Todo todo -> new Todo(description, isDone);
-            case Deadline deadline -> new Deadline(description, deadline.getByValue(), isDone);
+            case Deadline deadline -> new Deadline(description, deadline.getDueDateTime(), isDone);
             case Event event -> new Event(description, event.getFrom(), event.getTo(), isDone);
             default -> throw new IllegalArgumentException("Unsupported task type: " + getClass().getName());
         };

@@ -218,10 +218,10 @@ public class Storage {
         return switch (task) {
             case Todo todo -> String.join(FIELD_SEPARATOR, "T", status, task.getDescription());
             case Deadline deadline -> String.join(FIELD_SEPARATOR, "D", status, task.getDescription(),
-                DateTimeParser.formatForStorage(deadline.getByValue()));
+                    DateTimeParser.formatForStorage(deadline.getDueDateTime()));
             case Event event -> String.join(FIELD_SEPARATOR, "E", status, task.getDescription(),
-                DateTimeParser.formatForStorage(event.getFrom()),
-                DateTimeParser.formatForStorage(event.getTo()));
+                    DateTimeParser.formatForStorage(event.getFrom()),
+                    DateTimeParser.formatForStorage(event.getTo()));
             default -> throw new IllegalArgumentException("Unsupported task type: " + task.getClass().getName());
         };
     }

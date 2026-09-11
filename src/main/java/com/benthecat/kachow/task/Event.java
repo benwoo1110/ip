@@ -36,8 +36,8 @@ public class Event extends Task {
     public Event(String description, DateTimeParser.ParsedDateTime from, DateTimeParser.ParsedDateTime to,
             boolean isDone) {
         super(description, isDone);
-        this.startDateTime = Objects.requireNonNull(from);
-        this.endDateTime = Objects.requireNonNull(to);
+        startDateTime = Objects.requireNonNull(from);
+        endDateTime = Objects.requireNonNull(to);
         if (!to.toLocalDateTime().isAfter(from.toLocalDateTime())) {
             throw new IllegalArgumentException("An event must end after it starts.");
         }
