@@ -93,33 +93,36 @@ class KachowTest {
         Path dataFile = tempDirectory.resolve("data/kachow.txt");
         RecordingPrinter printer = new RecordingPrinter();
         Kachow kachow = new Kachow(dataFile.toString(), printer);
-        String[] commands = {
-            "todo read book",
-            "deadline submit report /by 2026-09-11 1800",
-            "event planning /from 2026-09-11 1000 /to 1100",
-            "mark 2",
-            "unmark 2",
-            "edit 3 /description meeting /to 1200",
-            "delete 1"
-        };
-        String[] savedStates = {
-            "T | 0 | read book\n",
-            "T | 0 | read book\nD | 0 | submit report | 2026-09-11T18:00\n",
-            "T | 0 | read book\nD | 0 | submit report | 2026-09-11T18:00\n"
-                    + "E | 0 | planning | 2026-09-11T10:00 | 2026-09-11T11:00\n",
-            "T | 0 | read book\nD | 1 | submit report | 2026-09-11T18:00\n"
-                    + "E | 0 | planning | 2026-09-11T10:00 | 2026-09-11T11:00\n",
-            "T | 0 | read book\nD | 0 | submit report | 2026-09-11T18:00\n"
-                    + "E | 0 | planning | 2026-09-11T10:00 | 2026-09-11T11:00\n",
-            "T | 0 | read book\nD | 0 | submit report | 2026-09-11T18:00\n"
-                    + "E | 0 | meeting | 2026-09-11T10:00 | 2026-09-11T12:00\n",
-            "D | 0 | submit report | 2026-09-11T18:00\n"
-                    + "E | 0 | meeting | 2026-09-11T10:00 | 2026-09-11T12:00\n"
-        };
-        for (int i = 0; i < commands.length; i++) {
-            assertTrue(kachow.handleUserInput(commands[i]));
-            assertEquals(savedStates[i], Files.readString(dataFile), commands[i]);
-        }
+        assertLifecycleMutationsPersist(kachow, dataFile);
+        assertRestartRestoresTasks(dataFile, printer);
+    }
+
+    /** Checks the exact saved state after each operation in a successful task lifecycle. */
+    private void assertLifecycleMutationsPersist(Kachow kachow, Path dataFile) throws IOException {
+        String todo = "T | 0 | read book\n";
+        String deadline = "D | 0 | submit report | 2026-09-11T18:00\n";
+        String markedDeadline = "D | 1 | submit report | 2026-09-11T18:00\n";
+        String event = "E | 0 | planning | 2026-09-11T10:00 | 2026-09-11T11:00\n";
+        String editedEvent = "E | 0 | meeting | 2026-09-11T10:00 | 2026-09-11T12:00\n";
+        assertCommandPersists(kachow, dataFile, "todo read book", todo);
+        assertCommandPersists(kachow, dataFile, "deadline submit report /by 2026-09-11 1800", todo + deadline);
+        assertCommandPersists(kachow, dataFile, "event planning /from 2026-09-11 1000 /to 1100",
+                todo + deadline + event);
+        assertCommandPersists(kachow, dataFile, "mark 2", todo + markedDeadline + event);
+        assertCommandPersists(kachow, dataFile, "unmark 2", todo + deadline + event);
+        assertCommandPersists(kachow, dataFile, "edit 3 /description meeting /to 1200", todo + deadline + editedEvent);
+        assertCommandPersists(kachow, dataFile, "delete 1", deadline + editedEvent);
+    }
+
+    /** Executes a command and checks its complete saved representation. */
+    private void assertCommandPersists(Kachow kachow, Path dataFile, String command, String expected)
+            throws IOException {
+        assertTrue(kachow.handleUserInput(command), command);
+        assertEquals(expected, Files.readString(dataFile), command);
+    }
+
+    /** Checks restored list output, deletion of every task, and restart with an empty file. */
+    private void assertRestartRestoresTasks(Path dataFile, RecordingPrinter printer) throws IOException {
         printer.lines.clear();
         Kachow restarted = new Kachow(dataFile.toString(), printer);
         restarted.handleUserInput("list");

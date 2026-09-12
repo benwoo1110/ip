@@ -137,66 +137,82 @@ public class Kachow {
      * @throws KachowException If a task operation cannot be completed or persisted.
      */
     private boolean execute(Parser.ParsedCommand parsedCommand) throws KachowException {
-        TaskList updatedTasks = new TaskList(tasks.getTasks());
-        return switch (parsedCommand.command()) {
+        switch (parsedCommand.command()) {
             case BYE -> {
                 parser.requireNoArgument(parsedCommand);
                 userInterface.showGoodbye();
-                yield false;
+                return false;
             }
-            case LIST -> {
-                parser.requireNoArgument(parsedCommand);
-                userInterface.showTaskList(tasks);
-                yield true;
-            }
-            case FIND -> {
-                String keyword = parser.parseSearchKeyword(parsedCommand);
-                userInterface.showSearchResults(keyword, tasks.findByDescription(keyword));
-                yield true;
-            }
-            case TODO, DEADLINE, EVENT -> {
-                Task task = parser.parseTask(parsedCommand);
-                updatedTasks.add(task);
-                saveChanges(updatedTasks);
-                userInterface.showTaskAdded(task, tasks.getSize());
-                yield true;
-            }
-            case ON -> {
-                var date = parser.parseDate(parsedCommand);
-                userInterface.showTasksOn(date, tasks.findOn(date));
-                yield true;
-            }
-            case MARK -> {
-                int taskNumber = parser.parseTaskNumber(parsedCommand);
-                Task task = tasks.get(taskNumber).withDoneStatus(true);
-                updatedTasks.replace(taskNumber, task);
-                saveChanges(updatedTasks);
-                userInterface.showTaskMarked(task);
-                yield true;
-            }
-            case UNMARK -> {
-                int taskNumber = parser.parseTaskNumber(parsedCommand);
-                Task task = tasks.get(taskNumber).withDoneStatus(false);
-                updatedTasks.replace(taskNumber, task);
-                saveChanges(updatedTasks);
-                userInterface.showTaskUnmarked(task);
-                yield true;
-            }
-            case EDIT -> {
-                Parser.EditCommand editCommand = parser.parseEditCommand(parsedCommand);
-                Task currentTask = tasks.get(editCommand.taskNumber());
-                Task editedTask = parser.applyEdit(currentTask, editCommand);
-                updatedTasks.replace(editCommand.taskNumber(), editedTask);
-                saveChanges(updatedTasks);
-                userInterface.showTaskEdited(editedTask);
-                yield true;
-            }
-            case DELETE -> {
-                Task task = updatedTasks.delete(parser.parseTaskNumber(parsedCommand));
-                saveChanges(updatedTasks);
-                userInterface.showTaskDeleted(task, tasks.getSize());
-                yield true;
-            }
-        };
+            case LIST -> showTasks(parsedCommand);
+            case FIND -> findTasks(parsedCommand);
+            case ON -> findTasksOnDate(parsedCommand);
+            case TODO, DEADLINE, EVENT -> addTask(parsedCommand);
+            case MARK -> setTaskDoneStatus(parsedCommand, true);
+            case UNMARK -> setTaskDoneStatus(parsedCommand, false);
+            case EDIT -> editTask(parsedCommand);
+            case DELETE -> deleteTask(parsedCommand);
+            default -> throw new IllegalStateException("Unsupported command: " + parsedCommand.command());
+        }
+        return true;
+    }
+
+    /** Shows all tasks after rejecting unexpected arguments. */
+    private void showTasks(Parser.ParsedCommand command) throws KachowException {
+        parser.requireNoArgument(command);
+        userInterface.showTaskList(tasks);
+    }
+
+    /** Shows tasks whose descriptions match the supplied keyword. */
+    private void findTasks(Parser.ParsedCommand command) throws KachowException {
+        String keyword = parser.parseSearchKeyword(command);
+        userInterface.showSearchResults(keyword, tasks.findByDescription(keyword));
+    }
+
+    /** Shows deadlines and events on the supplied calendar date. */
+    private void findTasksOnDate(Parser.ParsedCommand command) throws KachowException {
+        var date = parser.parseDate(command);
+        userInterface.showTasksOn(date, tasks.findOn(date));
+    }
+
+    /** Adds a task and announces success only after saving it. */
+    private void addTask(Parser.ParsedCommand command) throws KachowException {
+        Task task = parser.parseTask(command);
+        TaskList updatedTasks = new TaskList(tasks.getTasks());
+        updatedTasks.add(task);
+        saveChanges(updatedTasks);
+        userInterface.showTaskAdded(task, tasks.getSize());
+    }
+
+    /** Persists a completion-status change before displaying its confirmation. */
+    private void setTaskDoneStatus(Parser.ParsedCommand command, boolean isDone) throws KachowException {
+        int taskNumber = parser.parseTaskNumber(command);
+        Task task = tasks.get(taskNumber).withDoneStatus(isDone);
+        TaskList updatedTasks = new TaskList(tasks.getTasks());
+        updatedTasks.replace(taskNumber, task);
+        saveChanges(updatedTasks);
+        if (isDone) {
+            userInterface.showTaskMarked(task);
+        } else {
+            userInterface.showTaskUnmarked(task);
+        }
+    }
+
+    /** Applies and saves all requested edits before displaying the updated task. */
+    private void editTask(Parser.ParsedCommand command) throws KachowException {
+        Parser.EditCommand editCommand = parser.parseEditCommand(command);
+        Task currentTask = tasks.get(editCommand.taskNumber());
+        Task editedTask = parser.applyEdit(currentTask, editCommand);
+        TaskList updatedTasks = new TaskList(tasks.getTasks());
+        updatedTasks.replace(editCommand.taskNumber(), editedTask);
+        saveChanges(updatedTasks);
+        userInterface.showTaskEdited(editedTask);
+    }
+
+    /** Deletes and saves a task before displaying the remaining task count. */
+    private void deleteTask(Parser.ParsedCommand command) throws KachowException {
+        TaskList updatedTasks = new TaskList(tasks.getTasks());
+        Task task = updatedTasks.delete(parser.parseTaskNumber(command));
+        saveChanges(updatedTasks);
+        userInterface.showTaskDeleted(task, tasks.getSize());
     }
 }
